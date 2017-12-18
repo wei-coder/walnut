@@ -32,8 +32,6 @@ typedef enum color {
 } color_t;
 
 void clear_screen();
-static void scroll();
-static void move_cursor();
 void show_char(char c);
 void show_char_color(char c, color_t back, color_t fore);
 void show_string(char* string);
@@ -42,13 +40,4 @@ void show_hex_num(u32 num);
 void show_hex_num_color(u32 num, color_t back, color_t fore);
 void show_dec_num(u32 num);
 void show_dec_num_color(u32 num, color_t back, color_t fore);
-
-
-//VGA显存起始地址
-static u16 * video_memory = (u16*)0xB8000;
-
-//记录光标的坐标位置变量
-static u8	horiz_c = 0;
-static u8	verti_c = 0;
-
 
