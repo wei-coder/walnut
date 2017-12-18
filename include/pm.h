@@ -31,10 +31,16 @@ purpose:	保护模式相关数据类型及函数声明
 #define KERNEL_DS_BASE			0
 #define USER_CS_BASE			0
 #define USER_DS_BASE			0
-#define KERNEL_CS_LIMIT			0xFFFFFFFF
-#define KERNEL_DS_LIMIT			0xFFFFFFFF
-#define USER_CS_LIMIT			0xFFFFFFFF
-#define USER_DS_LIMIT			0xFFFFFFFF
+#define KERNEL_CS_LIMIT			0xFFFF
+#define KERNEL_DS_LIMIT			0xFFFF
+#define USER_CS_LIMIT			0xFFFF
+#define USER_DS_LIMIT			0xFFFF
+
+#define SEG_SELECTOR_KER_CS		(GDT_ENTRY_KERNEL_CS*8)
+#define SEG_SELECTOR_KER_DS		(GDT_ENTRY_KERNEL_CS*8)
+#define SEG_SELECTOR_USER_CS	(GDT_ENTRY_KERNEL_CS*8 + 3)
+#define SEG_SELECTOR_USER_DS	(GDT_ENTRY_KERNEL_CS*8 + 3)
+
 
 
 /*全局描述符表寄存器*/
@@ -42,7 +48,7 @@ struct gdtr_t
 {
 	u16 length;
 	u32	base_addr;
-};
+}__attribute__((packed));
 
 /*段选择子的结构体定义*/
 struct seg_selector
@@ -50,7 +56,7 @@ struct seg_selector
 	u8	RPL:2;					//段的特权级 分别表示ring0~ring3;
 	u8	TI:1;					//TI=0 在GDT查找描述符， TI=1 在LDT查找描述符
 	u16	index:13;				//描述符索引，相当于GDT表的下标
-};
+}__attribute__((packed));
 
 /*全局描述符的结构体定义*/
 typedef struct glb_desc_struct
@@ -81,24 +87,23 @@ typedef struct glb_desc_struct
 			u8	seg_base_high;					//段基址24~31
 		};
 	};
-}glb_desc_t;
+}__attribute__((packed)) glb_desc_t;
 
 /*描述符的初始化宏*/
-#define GLB_DESC_INIT(flags, base, limit) { { { \
-		.desc_low = ((limit) & 0xffff) | (((base) & 0xffff) << 16), \
-		.desc_high = (((base) & 0xff0000) >> 16) | (((flags) & 0xf0ff) << 8) | \
-			((limit) & 0xf0000) | ((base) & 0xff000000), \
-	} } }
+#define GLB_DESC_INIT(flags, base, limit)  { \
+		((limit) & 0xffff) | (((base) & 0xffff) << 16) | \
+		(((((base) & 0xff0000) >> 16) | (((flags) & 0xf0ff) << 8) | \
+			((limit) & 0xf0000) | ((base) & 0xff000000)) << 32) \}
 
 /*初始化全局描述符*/
 void init_gdt();
 
 /*IDTR*/
-typedef struct idtr_t
+struct idtr_t
 {
 	u16 length;
 	u32 base;
-};
+}__attribute__((packed));
 
 /*门描述符的结构体定义*/
 typedef struct gate_desc_struct
@@ -114,15 +119,15 @@ typedef struct gate_desc_struct
 		{
 			u16	base_low;					//中断处理程序地址的低16bit
 			u16	selector;					//段选择子
-			u8	reserved;					//段基址16~23
-			u8	type:4;						//
-			u8	aways1:1;					//b_s=0 系统段；b_s=1 代码段/数据段,此处必须为0
+			u8	reserved;					//保留位
+			u8	type:4;						//类型
+			u8	always0:1;					//始终为0
 			u8	dpl:2;						//段的特权级 分别表示ring0~ring3;
-			u8	present:1;					//b_p=0 段不在内存；b_p=1 段在内存
+			u8	present:1;					//表示有效性，0表示无效。
 			u16	base_high;					//中断处理程序地址的高16bit
 		};
 	};
-}gate_desc_t;
+}__attribute__((packed)) gate_desc_t;
 
 /*中断处理上下文*/
 typedef struct int_context
@@ -167,7 +172,7 @@ typedef void (*int_handler_ptr)(int_cont_t *);
 #define  	IRQ15		47 	// IDE1 传输控制使用
 
 /*中断描述符的初始化宏*/
-#define INT_DESC_INIT(isr_addr, selector, flags) { { { \
+#define INTR_DESC_INIT(isr_addr, selector, flags) { { { \
 		.desc_low = ((isr_addr) & 0xffff) | (((selector) & 0xffff) << 16), \
 		.desc_high = (((isr_addr) & 0xffff) << 16) | (((flags) & 0xff) << 8), \
 	} } }

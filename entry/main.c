@@ -12,10 +12,14 @@ int main()
 {
 	char string[] = "hello walnut os!";
 
-	init_gdt();
+//	init_gdt();
+//	init_idt();
 		
 	clear_screen();
 	show_string_color(string, 0, 4);
+
+//	asm volatile ("int $0x3");
+//	asm volatile ("int $0x4");
 	
 	return 0;
 }
