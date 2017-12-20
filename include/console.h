@@ -6,11 +6,17 @@ purpose:	IO操作的头文件，内联函数定义
 */
 
 #include "types.h"
-#include "io.h"
 
 #define HEX	16
 #define DEC	10
 #define OCT	8
+
+typedef __builtin_va_list va_list;
+
+#define va_start(ap, last)         (__builtin_va_start(ap, last))
+#define va_arg(ap, type)           (__builtin_va_arg(ap, type))
+#define va_end(ap) 
+
 
 typedef enum color {
 	black = 0,				//黑
