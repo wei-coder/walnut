@@ -1,5 +1,6 @@
 /*
 filename:	multiboot.h
+本文件定义了GRUB相关的数据结构，主要借用了hurlex的实现
 */
 
 
@@ -30,9 +31,9 @@ typedef struct multiboot_t {
 	u32 mem_lower;
 	u32 mem_upper;
 
-	u32 boot_device;		// 指出引导程序从哪个BIOS磁盘设备载入的OS映像
-	u32 cmdline;		// 内核命令行
-	u32 mods_count;		// boot 模块列表
+	u32 boot_device;				// 指出引导程序从哪个BIOS磁盘设备载入的OS映像
+	u32 cmdline;					// 内核命令行
+	u32 mods_count;				// boot 模块列表
 	u32 mods_addr;
 	
 	/**
@@ -52,11 +53,11 @@ typedef struct multiboot_t {
 	u32 mmap_length;		
 	u32 mmap_addr;
 	
-	u32 drives_length; 	// 指出第一个驱动器结构的物理地址	
-	u32 drives_addr; 		// 指出第一个驱动器这个结构的大小
-	u32 config_table; 		// ROM 配置表
-	u32 boot_loader_name; 	// boot loader 的名字
-	u32 apm_table; 	    	// APM 表
+	u32 drives_length; 			// 指出第一个驱动器结构的物理地址	
+	u32 drives_addr; 			// 指出第一个驱动器这个结构的大小
+	u32 config_table; 			// ROM 配置表
+	u32 boot_loader_name; 		// boot loader 的名字
+	u32 apm_table; 	    			// APM 表
 	u32 vbe_control_info;
 	u32 vbe_mode_info;
 	u32 vbe_mode;
