@@ -1,5 +1,4 @@
 #include "types.h"
-#include "multiboot.h"
 
 extern u8 kern_start[];
 extern u8 kern_end[];
@@ -19,7 +18,7 @@ extern u8 kern_end[];
 
 typedef struct NODE
 {
-	u32 base;
+	void* base;
 	u32	len;
 	struct NODE* next;
 }node_t;

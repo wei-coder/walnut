@@ -1,10 +1,26 @@
+/*
+filename: 	pmm.c
+author:	  	wei-coder
+date:		2017-12
+purpose:	物理内存管理相关内容
+*/
+
+
 #include "pmm.h"
+#include "multiboot.h"
+
 
 /*管理空闲页的链表*/
-list_t		free_page = {0};	
+list_t	free_mem = {0};	
 
 /*页目录表和页表的定义*/
 u32		pdt[PDT_LEN];
+
+void init_list(list_t* plist)
+{
+	plist->head = NULL;
+	plist->tail = NULL;
+}
 
 void l_insert(list_t* plist, node_t* pNode)
 {
@@ -37,6 +53,15 @@ void l_pop(list_t* plist)
 		plist->head->prev = NULL;
 	};
 };
+
+void pmm_free(void* pMem, u32 len)
+{
+	
+	free_mem.head->base = pMem;
+	free_mem.head->len	= len;
+	free_mem.head->next = NULL;
+	free_mem.tail = free_mem.head;
+}
 
 void show_mem_map()
 {
@@ -103,6 +128,4 @@ void init_pmm()
 	asm volatile ("mov %%cr0, %0" : "=r" (cr0));
 	cr0 |= 0x80000000;
 	asm volatile ("mov %0, %%cr0" : : "r" (cr0));
-
-
 }
