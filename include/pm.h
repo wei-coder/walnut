@@ -53,7 +53,7 @@ struct seg_selector
 {
 	u8	RPL:2;					//段的特权级 分别表示ring0~ring3;
 	u8	TI:1;					//TI=0 在GDT查找描述符， TI=1 在LDT查找描述符
-	u16	index:13;				//描述符索引，相当于GDT表的下标
+	u16	index:13;					//描述符索引，相当于GDT表的下标
 }__attribute__((packed));
 
 /*全局描述符的结构体定义*/
@@ -71,12 +71,12 @@ typedef struct glb_desc_struct
 			u16	seg_limit_low;					//段界限
 			u16	seg_base_low;					//段基址0~15bit
 			u8	seg_base_mid;					//段基址16~23
-			u8	rw_type:4;						//四个bit分别代表 X:可执行；E:扩展；W:可写；A:已访问；默认可读。
-			u8	b_s:1;							//b_s=0 系统段；b_s=1 代码段/数据段
+			u8	rw_type:4;						//当b_s=0时表示不同类型的中断门或调用门，=1时表示读写权限
+			u8	b_s:1;							//b_s=0 系统段/门描述符；b_s=1 代码段/数据段
 			u8	dpl:2;							//段的特权级 分别表示ring0~ring3;
 			u8	b_p:1;							//b_p=0 段不在内存；b_p=1 段在内存
 			u8	seg_limit_hit:4;					//段界限，与glb_desc.limit_low共同组成20bit的段界限。
-			u8	b_avl:1;							//预留给开发者用
+			u8	b_avl:1;							//可以被系统软件使用
 			u8	b_long:1;						//留给64bit CPU使用
 			u8	b_db:1;							//对于代码段，b_db=0 表示使用16bit的偏移地址，即实模式；b_db=1表示使用32bit偏移地址。
 												//对于堆栈段，b_db = 0 表示隐式栈操作使用SP, b_db=1表示使用ESP上部边界分别对应0xFFFF,
@@ -89,8 +89,6 @@ typedef struct glb_desc_struct
 
 /*加载GDTR寄存器*/
 extern void gdt_loader();
-
-
 
 /*IDTR*/
 struct idtr_t

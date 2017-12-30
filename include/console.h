@@ -46,4 +46,7 @@ void show_hex_num(u32 num);
 void show_hex_num_color(u32 num, color_t back, color_t fore);
 void show_dec_num(u32 num);
 void show_dec_num_color(u32 num, color_t back, color_t fore);
+int sprintf(char * buf, const char * fmt,...);
+int printf(const char * fmt,...);
+int vsprintf(char *buf, const char *fmt, va_list args);
 

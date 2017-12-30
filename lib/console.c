@@ -6,10 +6,12 @@ purpose:	控制台操作函数
 */
 
 #include "console.h"
+#include "string.h"
 #include "io.h"
+#include "memory.h"
 
 //VGA显存起始地址
-static u16 * video_memory = (u16*)0xB8000;
+static u16 * video_memory = (u16*)(0xB8000 + PAGE_OFFSET);
 
 //记录光标的坐标位置变量
 static u8	horiz_c = 0;
