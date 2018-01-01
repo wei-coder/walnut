@@ -21,25 +21,14 @@ extern u8 kern_end[];
 #define USED		0x01
 #define FREE		0x00
 
-/*链表结构定义
-typedef struct NODE
-{
-	u32 base;
-	u32	len;
-	struct NODE* next;
-}node_t;
-
-typedef struct LIST
-{
-	node_t * head;
-	node_t * tail;
-}list_t;
-*/
-
 #define 	PDT_FLAG	0x03
-#define	PAGE_FLAG	0x03
+#define		PAGE_FLAG	0x03
 
-/*页目录表表项结构*/
+#define	pdt_t u32
+#define pte_t u32
+
+
+/*页目录表表项结构
 typedef struct PDT
 {
 	union
@@ -48,21 +37,22 @@ typedef struct PDT
 		struct
 		{
 			u8 present:1;			//是否在物理内存中
-			u8 rw:1;					//读写权限0:只读 1:读写
-			u8 us:1;					//user / supervisor 0:系统级 1:用户级
+			u8 rw:1;				//读写权限0:只读 1:读写
+			u8 us:1;				//user / supervisor 0:系统级 1:用户级
 			u8 pwt:1;				//缓冲策略，0:write back 1:write through
 			u8 pcd:1;				//0:可以被缓冲，1:不可以被缓冲
-			u8 access:1;				//0:未被访问 1:已经被访问
+			u8 access:1;			//0:未被访问 1:已经被访问
 			u8 reserve:1;			//
 			u8 page_size:1;			//页大小，0:4K
-			u8 global:1;				//全局页
+			u8 global:1;			//全局页
 			u8 avail:3;				//允许系统程序员使用
-			u32 pte_addr:20;			//页表基地址
+			u32 pte_addr:20;		//页表基地址
 		};
 	};
 }pdt_t;
+*/
 
-/*页表表项结构*/
+/*页表表项结构
 typedef struct PTE
 {
 	union
@@ -84,12 +74,20 @@ typedef struct PTE
 		};
 	};
 }pte_t;
-
+*/
 
 void show_mem_map();
 void init_pmm();
 void init_vmm();
+void* alloc_page();
+void map(pdt_t *pgd_now, u32 va, u32 pa, u32 flags);
+void unmap(pdt_t *pgd_now, u32 va);
+u32 get_mapping(pdt_t *pgd_now, u32 va, u32 *pa);
+void free_page(u32 addr );
 
 #define PAGE_OFFSET		0xC0000000
-#define PAGE_INDEX(x)	(((x) >> 22) & 0x3FF)
+#define PDT_INDEX(x)	(((x) >> 22) & 0x3FF)
+#define PTE_INDEX(x)	(((x) >> 12) & 0x3FF)
+#define PAGE_MASK		0xFFFFF000
+
 
