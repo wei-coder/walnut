@@ -10,6 +10,8 @@ prupose:	操作系统的入口函数
 #include  "timer.h"
 #include "memory.h"
 #include "multiboot.h"
+#include "kern_debug.h"
+#include "heap.h"
 
 // 开启分页机制之后的内核栈
 char kern_stack[STACK_SIZE]  __attribute__ ((aligned(16)));
@@ -33,18 +35,9 @@ __attribute__((section(".init.data"))) u32 *pte_hign = (u32 *)0x3000;
 __attribute__((section(".init.text"))) int main()
 {
 	pgd_tmp[0] = (u32)pte_low | PDT_FLAG;
-	pgd_tmp[PAGE_INDEX(PAGE_OFFSET)] =  (u32)pte_hign | PDT_FLAG;
-
-	 u16* v_memory = (u16*)0xB8000;
-	 u8	blank_attr = (0 << 4) | (15 & 0x0F);
-	u16	blank = 0x20 | (blank_attr << 8);
+	pgd_tmp[PDT_INDEX(PAGE_OFFSET)] =  (u32)pte_hign | PDT_FLAG;
 
 	int i = 0;
-	for (i = 0; i < 80 * 25; i++)
-	{
-		v_memory[i] = blank;
-	};
-
 
 	//映射内核虚拟地址4MB到物理地址的4MB
 	for(i = 0; i<PTE_LEN; i++)
@@ -81,7 +74,7 @@ __attribute__((section(".init.text"))) int main()
 	return 0;
 };
 
-void	entry_kernel()
+void entry_kernel()
 {
 	//while(1);
 	char string[] = "hello walnut os!\n";
@@ -91,22 +84,26 @@ void	entry_kernel()
 	
 	//while(1);
 
+	init_debug();
 	init_gdt();
 	init_idt();
+	init_timer(1);
 
 	printf("kernel in memory start: 0x%08X\n", kern_start);
 	printf("kernel in memory end: 0x%08X\n", kern_end);
 	printf("kernel in memory used: %d KB\n\n", (kern_end - kern_start + 1023) / 1024);
-
-	show_mem_map();
+	//show_mem_map();
 	
 	init_pmm();
 	init_vmm();
+	init_heap();
 
+	test_heap();
 	//while(1);
 
 	/*开中断*/
 	asm volatile ("sti");
-	
+
+	//while(1);
 }
 

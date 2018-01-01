@@ -168,7 +168,7 @@ void isr_handler(int_cont_t * context)
 	}
 	else
 	{
-		show_string("there is not this ISR!\n");
+		printf("there is no this ISR: %d handle!\n", context->int_no);
 	}
 };
 
@@ -194,7 +194,7 @@ void irq_handler(int_cont_t *context)
 	}
 	else
 	{
-		show_string("there is not this interrupt handle!\n");
+		printf("there is no this interrupt: %d handle!\n", context->int_no);
 	}
 };
 
