@@ -104,6 +104,6 @@ void entry_kernel()
 	/*¿ªÖÐ¶Ï*/
 	asm volatile ("sti");
 
-	//while(1);
+	while(1);
 }
 
