@@ -131,6 +131,7 @@ void init_pmm()
 /*此函数根据页的物理地址释放一个物理页*/
 void free_page(u32 addr )
 {
+	//printf("free page: 0x%08X\n", addr);
 	if(start_addr > addr)
 	{
 		return;
@@ -170,7 +171,7 @@ void page_fault(int_cont_t * context)
 	u32 cr2;
 	asm volatile ("mov %%cr2, %0" : "=r" (cr2));
 
-	printf("Page fault at 0x%x, virtual faulting address 0x%x\n", context->eip,cr2);
+	printf("Page fault at 0x%08x, virtual faulting address 0x%08x\n", context->eip,cr2);
 	printf("Error code: %x\n", context->err_code);
 
 	if ( !(context->err_code & 0x1))
@@ -290,7 +291,6 @@ void unmap(pdt_t * pdt_now, u32 va)
 
 	// 转换到内核线性地址
 	pte = (pte_t *)((u32)pte + PAGE_OFFSET);
-	printf("UNMAP va = 0x%08X; pte[%d]=0x%08X\n", va, pte_idx, pte[pte_idx]);
 
 	pte[pte_idx] = (pte_t)0;
 
@@ -316,6 +316,7 @@ u32 get_mapping(pdt_t *pdt_now, u32 va, u32 *pa)
 	if ((u32)pte[pte_idx] != 0 && pa)
 	{
 		*pa = (u32)pte[pte_idx] & PAGE_MASK;
+		//printf("get mapping pa = 0x%08X\n", *pa);
 		return 1;
 	}
 

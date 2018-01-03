@@ -23,16 +23,18 @@ static void merge_block(node_t * block);
 
 static void init_node(node_t* pNode, u32 len);
 
-static u32 heap_max = HEAP_START;
+/*内核堆的结束地址*/
+static u32 heap_end = HEAP_START;
 
-// 内存块管理头指针
-static node_t* phead;
+/*内核堆的起始地址*/
+static list_t mem_list = {0};
 
 extern u32*	pdt;
 
 void init_heap()
 {
-	phead = NULL;
+	mem_list.head = NULL;
+	mem_list.tail = NULL;
 }
 
 void init_node(node_t* pNode, u32 len)
@@ -42,116 +44,52 @@ void init_node(node_t* pNode, u32 len)
 		pNode->next = NULL;
 		pNode->prev = NULL;
 		pNode->allocated = 0;
-		pNode->len = len;
+		pNode->len = len - sizeof(node_t);
 	}
 }
 
 void* kmalloc(u32 len)
 {
-	u32 block_start = 0;
-	len += sizeof(node_t);
-	u32 chunk_size = 0;
+	node_t* pNode = NULL;
+	u32 chunk_start = HEAP_START;
 
-	if(NULL == phead)
+	if(NULL != mem_list.head)
 	{
-		block_start = HEAP_START;
-		phead = (node_t *)block_start;
-		chunk_size = alloc_chunk(block_start, len);
-		init_node(phead, chunk_size);
-		//printf("phead=0x%08X\n", phead);
+		chunk_start = heap_end;
+		pNode = mem_list.head;
+		while(pNode)
+		{
+			if((0 == pNode->allocated) && (pNode->len >= len))
+			{
+				break;
+			}
+			pNode = pNode->next;
+		}
 	}
 
-	node_t* pNode = phead;
-	while(pNode)
+	if(NULL == pNode)
 	{
-		if (pNode->allocated == 0 && pNode->len >= len)
+		int size = alloc_chunk(chunk_start, len);
+		pNode = (node_t*)chunk_start;
+		init_node(pNode, size);
+		if(NULL == mem_list.head)
 		{
-			// 按照当前长度切割内存
-			split_chunk(pNode, len);
-			pNode->allocated = 1;
-			// 返回的时候必须将指针挪到管理结构之后
-			return (void *)((u32)pNode + sizeof(node_t));
-		}
-		// 逐次推移指针
-		if(pNode->next)
-		{
-			pNode = pNode->next;
+			mem_list.head = pNode;
+			mem_list.tail = pNode;
 		}
 		else
 		{
-			break;
+			mem_list.tail->next = pNode;
+			pNode->prev = mem_list.tail;
+			mem_list.tail = pNode;
 		}
 	}
 
-	block_start = (u32)pNode + pNode->len;
-	chunk_size = alloc_chunk(block_start, len);
-	//printf("block start=0x%08X; pNode");
-	pNode->next = (node_t*)block_start;
-	init_node(pNode->next,len);
-	pNode->next->prev = pNode;
+	split_chunk(pNode, len);
 
-	return (void*)(block_start + sizeof(node_t));
-	
+	pNode->allocated = 1;
+	return (void*)((u32)pNode + sizeof(node_t));
 }
-
-/*
-void *kmalloc(u32 len)
-{
-	// 所有申请的内存长度加上管理头的长度
-	// 因为在内存申请和释放的时候要通过该结构去管理
-	len += sizeof(node_t);
-
-	node_t * p_node = phead;
-	node_t * prev_node = NULL;
-
-	while (p_node)
-	{
-		// 如果当前内存块没有被申请过而且长度大于待申请的块
-		if (p_node->allocated == 0 && p_node->len >= len)
-		{
-			// 按照当前长度切割内存
-			split_chunk(p_node, len);
-			p_node->allocated = 1;
-			// 返回的时候必须将指针挪到管理结构之后
-			return (void *)((u32)p_node + sizeof(node_t));
-		}
-		// 逐次推移指针
-		prev_node = p_node;
-		p_node = p_node->next;
-		printf("prev_node addr = 0x%08X; p_node addr = 0x%08X \n", prev_node, p_node);
-	}
-
-	u32 chunk_start;
-
-	// 第一次执行该函数则初始化内存块起始位置
-	// 之后根据当前指针加上申请的长度即可
-	if (prev_node)
-	{
-		chunk_start = (u32)prev_node + prev_node->len;
-	}
-	else
-	{
-		chunk_start = HEAP_START;
-		mem_list.head = (node_t *)chunk_start;
-		printf("block start addr=0x%08X\n", chunk_start);
-	}
-	
-	// 检查是否需要申请内存页
-	alloc_chunk(chunk_start, len);
-	p_node = (node_t *)chunk_start;
-	p_node->prev = prev_node;
-	p_node->next = NULL;
-	p_node->allocated = 1;
-	p_node->len = len;
-	
-	if (prev_node)
-	{
-		prev_node->next = p_node;
-	}
-
-	return (void*)(chunk_start + sizeof(node_t));
-}
-*/
 
 void kfree(void *p)
 {
@@ -168,12 +106,13 @@ u32 alloc_chunk(u32 start, u32 len)
 	u32 ret = 0;
 	// 如果当前堆的位置已经到达界限则申请内存页
 	// 必须循环申请内存页直到有到足够的可用内存
-	while (start + len > heap_max)
+	//可能需要空闲链表，否则总是总最大位置向上申请，部分释放的地址也不能被应用。
+	while (start + len > heap_end)
 	{
 		u32 page = (u32)alloc_page();
 		//printf("alloc chunk page = 0x%08X, start= 0x%08X\n", page, start);
-		map((pdt_t*)pdt, heap_max, page, PAGE_FLAG);
-		heap_max += PMM_PAGE_SIZE;
+		map((pdt_t*)pdt, heap_end, page, PAGE_FLAG);
+		heap_end += PMM_PAGE_SIZE;
 		ret += PMM_PAGE_SIZE;
 	}
 	return ret;
@@ -181,22 +120,80 @@ u32 alloc_chunk(u32 start, u32 len)
 
 void free_block(node_t * block)
 {
-	if (block->prev == 0)
+	u32 start = (u32)block;
+	u32 end = (u32)block + sizeof(node_t) + block->len;
+
+	/*页边界对齐*/
+	u32 offset1 = (start - (u32)mem_list.head)%PMM_PAGE_SIZE;
+	start += offset1;
+	u32 offset2 = (end - (u32)mem_list.head)%PMM_PAGE_SIZE;
+	end -= offset2;
+
+	/*如果空闲块之间不足一页，则不释放，直接返回*/
+	if(end == start)
 	{
-		phead = NULL;
+		return;
+	}
+
+	if(0 != offset2)
+	{
+		node_t* newchunk = (node_t*)end;
+		newchunk->allocated = 0;
+		newchunk->len = offset2 - sizeof(node_t);
+		newchunk->next = block->next;
+		if(NULL == newchunk->next)
+		{
+			mem_list.tail = newchunk;
+		}
+
+		if(0 != offset1)
+		{
+			block->len = offset1 - sizeof(node_t);
+			newchunk->prev = block;
+			block->next = newchunk;
+		}
+		else
+		{
+			if(NULL != block->prev)
+			{
+				newchunk->prev = block->prev;
+				block->prev->next = newchunk;
+			}
+			else
+			{
+				mem_list.head = newchunk;
+				newchunk->prev = NULL;
+			}
+		}
 	}
 	else
 	{
-		block->prev->next = 0;
+		if(0 != offset1)
+		{
+			block->len = offset1 - sizeof(node_t);
+		}
+		else
+		{
+			if(NULL == block->prev)
+			{
+				mem_list.head = block->next;
+			}
+		}
+		if(NULL == block->next)
+		{
+			heap_end = start;
+		}
+		else
+		{
+			block->next->prev =NULL;
+		}
 	}
-
-	// 空闲的内存超过 1 页的话就释放掉
-	while ((heap_max - PMM_PAGE_SIZE) >= (u32)block)
+	
+	for(int i = 0; i< (end - start)/PMM_PAGE_SIZE; i++)
 	{
-		heap_max -= PMM_PAGE_SIZE;
 		u32 page;
-		get_mapping((pdt_t*)pdt, heap_max, &page);
-		unmap((pdt_t*)pdt, heap_max);
+		get_mapping((pdt_t*)pdt, (start+i*PMM_PAGE_SIZE), &page);
+		unmap((pdt_t*)pdt, (start+i*PMM_PAGE_SIZE));
 		free_page(page);
 	}
 }
@@ -204,14 +201,17 @@ void free_block(node_t * block)
 void split_chunk(node_t *chunk, u32 len)
 {
 	// 切分内存块之前得保证之后的剩余内存至少容纳一个内存管理块的大小
-	//printf("enter split_chunk,chunk = 0x%08X; len = %d; prev = 0x%08X; next = 0x%08X\n", (u32)chunk, chunk->len, (u32)(chunk->prev), (u32)(chunk->next));
-	if (chunk->len - len > sizeof (node_t))
+	if ((chunk->len - len) > sizeof (node_t))
 	{
-		node_t *newchunk = (node_t *)((u32)chunk + len);
+		node_t *newchunk = (node_t *)((u32)chunk + len + sizeof(node_t));
 		newchunk->prev = chunk;
 		newchunk->next = chunk->next;
+		if(NULL == newchunk->next)
+		{
+			mem_list.tail = newchunk;
+		}
 		newchunk->allocated = 0;
-		newchunk->len = chunk->len - len;
+		newchunk->len = chunk->len - len - sizeof(node_t);
 
 		chunk->next = newchunk;
 		chunk->len = len;
@@ -221,9 +221,9 @@ void split_chunk(node_t *chunk, u32 len)
 void merge_block(node_t * block)
 {
 	// 如果该内存块后面有链内存块且未被使用则拼合
-	if (block->next && block->next->allocated == 0)
+	if ((block->next) && (block->next->allocated == 0) )
 	{
-		block->len = block->len + block->next->len;
+		block->len = block->len + block->next->len + sizeof(node_t);
 		if (block->next->next)
 		{
 			block->next->next->prev = block;
@@ -234,7 +234,7 @@ void merge_block(node_t * block)
 	// 如果该内存块前面有链内存块且未被使用则拼合
 	if (block->prev && block->prev->allocated == 0)
 	{
-		block->prev->len = block->prev->len + block->len;
+		block->prev->len = block->prev->len + block->len + sizeof(node_t);
 		block->prev->next = block->next;
 		if (block->next)
 		{
@@ -243,11 +243,8 @@ void merge_block(node_t * block)
 		block = block->prev;
 	}
 
-	// 假如该内存后面没有链表内存块了直接释放掉
-	if (block->next == 0)
-	{
-		free_block(block);
-	}
+	/*检查是否也完整的空闲页，有则释放*/
+	free_block(block);
 }
 
 void test_heap()
