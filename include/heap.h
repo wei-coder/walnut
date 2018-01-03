@@ -13,8 +13,8 @@ purpose:	堆内存管理的相关函数声明和变量定义
 /*链表结构定义*/
 typedef struct NODE
 {
-	u32 allocated:1;
-	u32	len:31;
+	u32 allocated:1;			//内存块是否已分配
+	u32	len:31;				//内存块的长度，不包括链表结构的长度，最大允许申请2G
 	struct NODE* next;
 	struct NODE* prev;
 }node_t;
