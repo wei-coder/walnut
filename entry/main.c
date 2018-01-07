@@ -7,11 +7,12 @@ prupose:	操作系统的入口函数
 #include "types.h"
 #include "console.h"
 #include "pm.h"
-#include  "timer.h"
+#include "timer.h"
 #include "memory.h"
 #include "multiboot.h"
 #include "kern_debug.h"
 #include "heap.h"
+#include "system.h"
 
 // 开启分页机制之后的内核栈
 char kern_stack[STACK_SIZE]  __attribute__ ((aligned(16)));
@@ -28,14 +29,14 @@ void	entry_kernel();
 该地址必须是页对齐的，0~640K肯定是空的
 临时页目录表只有一项，及一个有效页表，该页表1024个表项
 指向1024个物理页，即1M空间*/
-__attribute__((section(".init.data"))) u32 *pgd_tmp = (u32 *)0x1000;
+__attribute__((section(".init.data"))) u32 *pdt_tmp = (u32 *)0x1000;
 __attribute__((section(".init.data"))) u32 *pte_low = (u32 *)0x2000;
 __attribute__((section(".init.data"))) u32 *pte_hign = (u32 *)0x3000;
 
 __attribute__((section(".init.text"))) int main()
 {
-	pgd_tmp[0] = (u32)pte_low | PDT_FLAG;
-	pgd_tmp[PDT_INDEX(PAGE_OFFSET)] =  (u32)pte_hign | PDT_FLAG;
+	pdt_tmp[0] = (u32)pte_low | PDT_FLAG;
+	pdt_tmp[PDT_INDEX(PAGE_OFFSET)] =  (u32)pte_hign | PDT_FLAG;
 
 	int i = 0;
 
@@ -52,7 +53,7 @@ __attribute__((section(".init.text"))) int main()
 	}
 
 	// 设置临时页表
-	asm volatile ("mov %0, %%cr3" : : "r" (pgd_tmp));
+	asm volatile ("mov %0, %%cr3" : : "r" (pdt_tmp));
 
 	u32 cr0;
 
@@ -76,14 +77,10 @@ __attribute__((section(".init.text"))) int main()
 
 void entry_kernel()
 {
-	//while(1);
 	char string[] = "hello walnut os!\n";
 	clear_screen();
-	
 	show_string_color(string, 0, 4);
 	
-	//while(1);
-
 	init_debug();
 	init_gdt();
 	init_idt();
@@ -92,17 +89,21 @@ void entry_kernel()
 	printf("kernel in memory start: 0x%08X\n", kern_start);
 	printf("kernel in memory end: 0x%08X\n", kern_end);
 	printf("kernel in memory used: %d KB\n\n", (kern_end - kern_start + 1023) / 1024);
-	//show_mem_map();
 	
 	init_pmm();
 	init_vmm();
 	init_heap();
 
-	test_heap();
-	//while(1);
+	//test_heap();
 
 	/*开中断*/
 	asm volatile ("sti");
+
+	move_to_user_mode();
+	if (!fork())
+	{
+		init();
+	}
 
 	while(1);
 }

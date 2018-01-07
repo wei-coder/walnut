@@ -10,7 +10,7 @@ purpose:	系统进入保护模式所需要的各项工作
 #include "console.h"
 
 /*全局描述符表的定义*/
-static glb_desc_t gdt_entry[GDT_ENTRY_LEN] = {0};
+desc_t gdt_entry[GDT_ENTRY_LEN] = {0};
 
 /*中断处理函数表的定义*/
 int_handler_ptr isr_entry[IDT_ENTRY_LEN] = {0};
@@ -18,7 +18,7 @@ int_handler_ptr isr_entry[IDT_ENTRY_LEN] = {0};
 /*中断描述符表的定义及初始化*/
 static gate_desc_t idt_entry[IDT_ENTRY_LEN] = {0};
 
-static void gdt_set_gate(u8 num, u16 flags, u32 base, u32 limit)
+void gdt_set_gate(u8 num, u16 flags, u32 base, u32 limit)
 {
 	gdt_entry[num].desc_low = ((limit) & 0xffff) | (((base) & 0xffff) << 16);
 	gdt_entry[num].desc_high = ((base) & 0xff)| (((flags) & 0xf0ff) << 8) | \
@@ -30,16 +30,16 @@ static void gdt_set_gate(u8 num, u16 flags, u32 base, u32 limit)
 void init_gdt()
 {
 	struct gdtr_t gdtr_reg = {0};
-	gdtr_reg.length = sizeof(glb_desc_t)*GDT_ENTRY_LEN - 1;
+	gdtr_reg.length = sizeof(desc_t)*GDT_ENTRY_LEN - 1;
 	gdtr_reg.base_addr = (u32)&gdt_entry;
 	
 	/*全局描述符表的定义*/
 	memset(gdt_entry, 0, 8*GDT_ENTRY_LEN);
-	gdt_set_gate(GDT_ENTRY_NULL,0, 0, 0);
-	gdt_set_gate(GDT_ENTRY_KERNEL_CS, KERNEL_CS_FLAG, KERNEL_CS_BASE, KERNEL_CS_LIMIT);
-	gdt_set_gate(GDT_ENTRY_KERNEL_DS, KERNEL_DS_FLAG, KERNEL_DS_BASE, KERNEL_DS_LIMIT);
-	gdt_set_gate(GDT_ENTRY_USER_CS, USER_CS_FLAG, USER_CS_BASE, USER_CS_LIMIT);
-	gdt_set_gate(GDT_ENTRY_USER_DS, USER_DS_FLAG, USER_DS_BASE, USER_DS_LIMIT);
+	gdt_set_gate(GDT_INDEX_NULL,0, 0, 0);
+	gdt_set_gate(GDT_INDEX_KERNEL_CS, KERNEL_CS_FLAG, KERNEL_CS_BASE, KERNEL_CS_LIMIT);
+	gdt_set_gate(GDT_INDEX_KERNEL_DS, KERNEL_DS_FLAG, KERNEL_DS_BASE, KERNEL_DS_LIMIT);
+	gdt_set_gate(GDT_INDEX_USER_CS, USER_CS_FLAG, USER_CS_BASE, USER_CS_LIMIT);
+	gdt_set_gate(GDT_INDEX_USER_DS, USER_DS_FLAG, USER_DS_BASE, USER_DS_LIMIT);
 	
 	gdt_loader((u32)&gdtr_reg);
 };
@@ -94,7 +94,7 @@ void init_idt()
 
 	/*idtr的初始化*/
 	struct idtr_t idtr_reg = {0};
-	idtr_reg.length = sizeof(glb_desc_t)*IDT_ENTRY_LEN -1;
+	idtr_reg.length = sizeof(desc_t)*IDT_ENTRY_LEN -1;
 	idtr_reg.base = (u32)&idt_entry;
 	
 	/*中断描述符表的定义及初始化*/
