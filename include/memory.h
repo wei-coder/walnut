@@ -13,10 +13,10 @@ extern u8 kern_end[];
 #define PTE_LEN	1024
 
 /*物理页框大小*/
-#define PMM_PAGE_SIZE	4096
+#define PAGE_SIZE	4096
 
 /*最多支持管理1G内存，所以物理页数量为*/
-#define PAGE_COUNT	(0x40000000/PMM_PAGE_SIZE)
+#define PAGE_COUNT	(0x40000000/PAGE_SIZE)
 
 #define USED		0x01
 #define FREE		0x00

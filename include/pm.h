@@ -7,7 +7,7 @@ purpose:	保护模式相关数据类型及函数声明
 
 #include "types.h"
 
-#define GDT_ENTRY_LEN   5
+#define GDT_ENTRY_LEN   32
 #define IDT_ENTRY_LEN   256
 
 #define	RING0	0x00
@@ -15,11 +15,14 @@ purpose:	保护模式相关数据类型及函数声明
 #define	RING2	0x02
 #define	RING3	0x03
 
-#define	GDT_ENTRY_NULL			0
-#define	GDT_ENTRY_KERNEL_CS		1
-#define GDT_ENTRY_KERNEL_DS		2
-#define	GDT_ENTRY_USER_CS		3
-#define	GDT_ENTRY_USER_DS		4
+#define	GDT_INDEX_NULL			0
+#define	GDT_INDEX_KERNEL_CS		12
+#define GDT_INDEX_KERNEL_DS		13
+#define	GDT_INDEX_USER_CS		14
+#define	GDT_INDEX_USER_DS		15
+#define GDT_INDEX_TSS			16
+#define	GDT_INDEX_LDT			17
+#define GDT_INDEX_DFAULT_TSS	31
 
 #define KERNEL_CS_FLAG			0xCF9A
 #define KERNEL_DS_FLAG			0xCF92
@@ -34,10 +37,12 @@ purpose:	保护模式相关数据类型及函数声明
 #define USER_CS_LIMIT			0xFFFFFFFF
 #define USER_DS_LIMIT			0xFFFFFFFF
 
-#define SEG_SELECTOR_KER_CS		(GDT_ENTRY_KERNEL_CS*8)
-#define SEG_SELECTOR_KER_DS		(GDT_ENTRY_KERNEL_CS*8)
-#define SEG_SELECTOR_USER_CS	(GDT_ENTRY_KERNEL_CS*8 + 3)
-#define SEG_SELECTOR_USER_DS	(GDT_ENTRY_KERNEL_CS*8 + 3)
+#define _SELECTOR_KER_CS		(GDT_INDEX_KERNEL_CS*8)
+#define _SELECTOR_KER_DS		(GDT_INDEX_KERNEL_DS*8)
+#define _SELECTOR_USER_CS		(GDT_INDEX_USER_CS*8 + 3)
+#define _SELECTOR_USER_DS		(GDT_INDEX_USER_DS*8 + 3)
+#define	_SELECTOR_TSS			(GDT_INDEX_TSS*8)
+#define	_SELECTOR_LDT			(GDT_INDEX_LDT*8 + 7)
 
 
 
@@ -56,8 +61,8 @@ struct seg_selector
 	u16	index:13;					//描述符索引，相当于GDT表的下标
 }__attribute__((packed));
 
-/*全局描述符的结构体定义*/
-typedef struct glb_desc_struct
+/*描述符的结构体定义*/
+typedef struct desc_struct
 {
 	union
 	{
@@ -85,7 +90,7 @@ typedef struct glb_desc_struct
 			u8	seg_base_high;					//段基址24~31
 		};
 	};
-}__attribute__((packed)) glb_desc_t;
+}__attribute__((packed)) desc_t;
 
 /*加载GDTR寄存器*/
 extern void gdt_loader();
@@ -229,4 +234,6 @@ void init_gdt();
 
 /*中断处理函数的注册函数*/
 void register_int_handler(u8 num, int_handler_ptr func);
+
+void gdt_set_gate(u8 num, u16 flags, u32 base, u32 limit);
 

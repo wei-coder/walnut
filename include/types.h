@@ -19,14 +19,27 @@ purpose:	内核的全局类型定义
 
 
 //u~unsigned; s~signed
+typedef unsigned long		ulong;
 typedef unsigned int		u32;
-typedef int				s32;
+typedef int					s32;
 typedef unsigned short		u16;
 typedef short				s16;
 typedef unsigned char		u8;
 typedef char				s8;
 
 typedef unsigned int		size_t;
+
+typedef int pid_t;		
+typedef unsigned short uid_t;
+typedef unsigned char gid_t;
+typedef unsigned short dev_t;
+typedef unsigned short ino_t;
+typedef unsigned short mode_t;
+typedef unsigned short umode_t;
+typedef unsigned char nlink_t;
+typedef int daddr_t;
+typedef long off_t;
+
 
 typedef enum
 {
