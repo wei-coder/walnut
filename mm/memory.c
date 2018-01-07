@@ -94,7 +94,7 @@ void init_pmm()
 			end_addr = mmap_entry->base_addr_low + mmap_entry->length_low;
 			
 			/*物理页的个数就等于内存长度除以物理页大小*/
-			page_count = mmap_entry->length_low/PMM_PAGE_SIZE;
+			page_count = mmap_entry->length_low/PAGE_SIZE;
 
 			/*PDT放在内核之后的内存，此地址是物理地址*/
 			pdt = (u32*)(mmap_entry->base_addr_low + (u32)(kern_end - kern_start) + PAGE_OFFSET);
@@ -116,7 +116,7 @@ void init_pmm()
 			memset(pte,0, pte_count*PTE_LEN*4);
 
 			int i = 0;
-			for( ; i<(end_addr - start_addr)/PMM_PAGE_SIZE; i++)
+			for( ; i<(end_addr - start_addr)/PAGE_SIZE; i++)
 			{
 				/*内核管理的物理内存从内核结束地址开始，由start_addr记录，最高物理内存由end_addr记录*/
 				mem_map[i] = FREE;
@@ -158,7 +158,7 @@ void* alloc_page()
 	{
 		if(FREE == mem_map[i]) 
 		{
-			ret = start_addr + i*PMM_PAGE_SIZE;
+			ret = start_addr + i*PAGE_SIZE;
 			mem_map[i] = USED;
 			return (void *)ret;
 		}
@@ -219,7 +219,7 @@ void init_vmm()
 	int j = 0;
 	
 	/*仅将内核及页目录表和页表的物理页映射到线性空间*/
-	u32 kern_page_count = start_addr/PMM_PAGE_SIZE;
+	u32 kern_page_count = start_addr/PAGE_SIZE;
 	
 	for(i=PDT_INDEX(PAGE_OFFSET); i < PDT_INDEX(PAGE_OFFSET) + page_count/PTE_LEN; i++)
 	{
@@ -263,7 +263,7 @@ void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
 		/*使页目录指向页表*/
 		pdt_now[pdt_idx] = (pdt_t)((u32)pte | PDT_FLAG);
 
-		memset((void*)((u32)pte + PAGE_OFFSET), 0, PMM_PAGE_SIZE);
+		memset((void*)((u32)pte + PAGE_OFFSET), 0, PAGE_SIZE);
 	}
 	else
 	{

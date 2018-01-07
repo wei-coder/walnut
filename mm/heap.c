@@ -112,8 +112,8 @@ u32 alloc_chunk(u32 start, u32 len)
 		u32 page = (u32)alloc_page();
 		//printf("alloc chunk page = 0x%08X, start= 0x%08X\n", page, start);
 		map((pdt_t*)pdt, heap_end, page, PAGE_FLAG);
-		heap_end += PMM_PAGE_SIZE;
-		ret += PMM_PAGE_SIZE;
+		heap_end += PAGE_SIZE;
+		ret += PAGE_SIZE;
 	}
 	return ret;
 }
@@ -124,9 +124,9 @@ void free_block(node_t * block)
 	u32 end = (u32)block + sizeof(node_t) + block->len;
 
 	/*页边界对齐*/
-	u32 offset1 = (start - (u32)mem_list.head)%PMM_PAGE_SIZE;
+	u32 offset1 = (start - (u32)mem_list.head)%PAGE_SIZE;
 	start += offset1;
-	u32 offset2 = (end - (u32)mem_list.head)%PMM_PAGE_SIZE;
+	u32 offset2 = (end - (u32)mem_list.head)%PAGE_SIZE;
 	end -= offset2;
 
 	/*如果空闲块之间不足一页，则不释放，直接返回*/
@@ -189,11 +189,11 @@ void free_block(node_t * block)
 		}
 	}
 	
-	for(int i = 0; i< (end - start)/PMM_PAGE_SIZE; i++)
+	for(int i = 0; i< (end - start)/PAGE_SIZE; i++)
 	{
 		u32 page;
-		get_mapping((pdt_t*)pdt, (start+i*PMM_PAGE_SIZE), &page);
-		unmap((pdt_t*)pdt, (start+i*PMM_PAGE_SIZE));
+		get_mapping((pdt_t*)pdt, (start+i*PAGE_SIZE), &page);
+		unmap((pdt_t*)pdt, (start+i*PAGE_SIZE));
 		free_page(page);
 	}
 }
