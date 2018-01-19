@@ -6,13 +6,14 @@ prupose:	操作系统的入口函数
 */
 #include "types.h"
 #include "console.h"
-#include "pm.h"
+//#include "pm.h"
 #include "timer.h"
 #include "memory.h"
 #include "multiboot.h"
 #include "kern_debug.h"
 #include "heap.h"
 #include "system.h"
+#include "init.h"
 
 // 开启分页机制之后的内核栈
 char kern_stack[STACK_SIZE]  __attribute__ ((aligned(16)));
@@ -80,7 +81,7 @@ void entry_kernel()
 	char string[] = "hello walnut os!\n";
 	clear_screen();
 	show_string_color(string, 0, 4);
-	
+
 	init_debug();
 	init_gdt();
 	init_idt();
@@ -89,7 +90,7 @@ void entry_kernel()
 	printf("kernel in memory start: 0x%08X\n", kern_start);
 	printf("kernel in memory end: 0x%08X\n", kern_end);
 	printf("kernel in memory used: %d KB\n\n", (kern_end - kern_start + 1023) / 1024);
-	
+
 	init_pmm();
 	init_vmm();
 	init_heap();
@@ -98,13 +99,9 @@ void entry_kernel()
 
 	/*开中断*/
 	asm volatile ("sti");
-
-	move_to_user_mode();
-	if (!fork())
-	{
-		init();
-	}
-
+	
+	//move_to_user_mode();
+	
 	while(1);
 }
 

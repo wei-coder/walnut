@@ -5,6 +5,8 @@ date:		2018-1
 purpose:	fork进程的相关函数实现
 */
 
+#if 1
+
 #include "types.h"
 
 /*
@@ -165,3 +167,4 @@ repeat:
 	return -EAGAIN;
 }
 
+#endif
