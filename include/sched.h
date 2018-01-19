@@ -4,6 +4,7 @@ author:		wei-coder
 date:		2018-1
 purpose:	进程调度相关的数据定义
 */
+#if 1
 
 #include "task.h"
 #include "memory.h"
@@ -32,72 +33,79 @@ typedef struct STACK_T
   short b;
 }stack_t;
 
+extern struct task_struct *task[NR_TASKS];
+extern struct task_struct *last_task_used_math;
+extern struct task_struct *current;
+extern long volatile jiffies;
+extern long startup_time;
+extern u32* pdt;
+
 // 第一个任务结构的定义
 #define INIT_TASK \
 {\
-	/*long state;*/ 0,\
-	/*long counter;*/ 15,\
-	/*long priority;*/ 15,\
-	/*long signal;*/ 0,\
-	/*long blocked;*/ 0,\
-	
-	/*int exit_code;*/	0,\
-	/*ulong start_code;*/ 0,\
-	/*ulong end_code;*/	 0,\
-	/*ulong end_data;*/	 0,\
-	/*ulong brk;*/		 0,\
-	/*ulong start_stack;*/ 0,\
-	/*long pid;*/		 0,\
-	/*long father;*/	-1,\
-	/*long pgrp;*/		 0,\
-	/*long session;*/	 0,\
-	/*long leader;*/	 0,\
-	/*u16	uid;*/		 0,\
-	/*u16	euid;*/		 0,\
-	/*u16	suid;*/		 0,\
-	/*u16 gid;*/		 0,\
-	/*u16	egid;*/		 0,\
-	/*u16 sgid;*/		 0,\
-	/*long alarm;*/		 0,\
-	/*long utime;*/		 0,\
-	/*long stime;*/		 0,\
-	/*long cutime;*/	 0,\
-	/*long cstime;*/	 0,\
-	/*long start_time;*/ 0,\
-	/*u16 used_math;*/	 0,\
-
-/* file system info */
-	/*int tty;*/		-1,\
-	/*u16 umask;*/		0022,\
-	/*u32 *pwd;*/		NULL,\
-	/*u32 *root;*/		NULL,\
-	/*u32 *executable;*/	NULL,\
-	/*ulong close_on_exec;*/ 0,\
-	/*struct context tss;*/ {\
-					/*long back_link;*/		0,\
-					/*long esp0;*/			PAGE_SIZE + (long) (&init_task),\
-					/*long ss0;*/			_SELECTOR_KER_DS,\
-					/*long esp1;*/			0,\
-					/*long ss1;*/			0,\
-					/*long esp2;*/			0,\
-					/*long ss2;*/			0,\
-					/*long cr3;*/			(long) &pdt,\
-    				/*long eip;*/			0,\
-    				/*long eflags;*/		0,\
-    				/*long eax;*/			0,\
-    				/*long ecx;*/			0,\
-    				/*long edx;*/			0,\
-    				/*long ebx;*/			0,\
-    				/*long esp;*/			0,\
-    				/*long ebp;*/			0,\
-    				/*long esi;*/			0,\
-    				/*long edi;*/			0,\
-    				/*long es;*/			_SELECTOR_USER_DS,\
-    				/*long cs;*/			_SELECTOR_USER_CS,\
-    				/*long ss;*/			_SELECTOR_USER_DS,\
-    				/*long ds;*/			_SELECTOR_USER_DS,\
-    				/*long fs;*/			_SELECTOR_USER_DS,\
-    				/*long gs;*/			_SELECTOR_USER_DS,},\
+	0,\
+	15,\
+	15,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	-1,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	-1,\
+	0022,\
+	NULL,\
+	NULL,\
+	NULL,\
+	0,\
+	{\
+		0,\
+		PAGE_SIZE + (long) (&init_task),\
+		_SELECTOR_KER_DS,\
+		0,\
+		0,\
+		0,\
+		0,\
+		(long) &pdt,\
+		0,\
+		0,\
+		0,\
+		0,\
+		0,\
+		0,\
+		0,\
+		0,\
+		0,\
+		0,\
+		_SELECTOR_USER_DS,\
+		_SELECTOR_USER_CS,\
+		_SELECTOR_USER_DS,\
+		_SELECTOR_USER_DS,\
+		_SELECTOR_USER_DS,\
+		_SELECTOR_USER_DS,\
+		_SELECTOR_LDT,\
+		0x80000000,\
+		},\
 }
 
 #define FIRST_TASK	task[0]				// 任务0 比较特殊，所以特意给它单独定义一个符号。
@@ -105,33 +113,21 @@ typedef struct STACK_T
 
 #define FIRST_TSS_ENTRY	GDT_INDEX_TSS
 
+
+//需要更新ESP0才可以跳转，否则跳转失败
 extern inline void switch_to(int n) 
 {
-		unsigned short __tmp;
-		__tmp = _SELECTOR_TSS;
-
-		asm volatile(\
-			"mov ebx, %0;"
-			"mov eax, %1;"
-			"mov ecx, %2"
-			"cmp ecx, %3"
-			"je l1"
-			"xchg ecx,%3"
-			"mov ax, %4"
-			"mov word ptr ds:[lcs],ax"
-			:"=r"(offset task), "=m"(n),"=m"([ebx+eax*4]), "=m"(current), "=m"(__tmp) );
-		asm volatile(
-			"_emit 0xea"
-			"_emit 0"
-			"_emit 0"
-			"_emit 0" 
-			"_emit 0");
-	lcs:
-		asm volatile(
-			"_emit 0"
-			"_emit 0");
-	l1:;
+	struct {long a,b;} __tmp; 
+	asm volatile("cmpl %%ecx,%2\n\t" \
+	        "je 1f\n\t" \
+	        "movw %%dx,%1\n\t" \
+	        "xchgl %%ecx,%2\n\t" \
+	        "ljmp %0\n\t" \
+	        "1:" \
+	        ::"m" (*&__tmp.a),"m" (*&__tmp.b), "m"(current),\
+	        "d" (_SELECTOR_TSS),"c" ((long) task[n])); \
 }
 
 void schedule (void);
+#endif
 

@@ -11,31 +11,37 @@ purpose:	保护模式相关数据类型及函数声明
 #define IDT_ENTRY_LEN   256
 
 #define	RING0	0x00
-#define RING1	0x01
+#define 	RING1	0x01
 #define	RING2	0x02
 #define	RING3	0x03
 
 #define	GDT_INDEX_NULL			0
 #define	GDT_INDEX_KERNEL_CS		12
-#define GDT_INDEX_KERNEL_DS		13
-#define	GDT_INDEX_USER_CS		14
+#define 	GDT_INDEX_KERNEL_DS		13
+#define	GDT_INDEX_USER_CS			14
 #define	GDT_INDEX_USER_DS		15
-#define GDT_INDEX_TSS			16
-#define	GDT_INDEX_LDT			17
-#define GDT_INDEX_DFAULT_TSS	31
+#define 	GDT_INDEX_TSS				16
+#define	GDT_INDEX_LDT				17
+#define 	GDT_INDEX_DFAULT_TSS		31
 
 #define KERNEL_CS_FLAG			0xCF9A
 #define KERNEL_DS_FLAG			0xCF92
 #define USER_CS_FLAG			0xCFFA
 #define USER_DS_FLAG			0xCFF2
+#define TSS_FLAG				0xCF89
+#define LDT_FLAG				0xCF82
 #define KERNEL_CS_BASE			0
 #define KERNEL_DS_BASE			0
 #define USER_CS_BASE			0
 #define USER_DS_BASE			0
+#define TSS_BASE				0
+#define LDT_BASE				0
 #define KERNEL_CS_LIMIT			0xFFFFFFFF
 #define KERNEL_DS_LIMIT			0xFFFFFFFF
 #define USER_CS_LIMIT			0xFFFFFFFF
 #define USER_DS_LIMIT			0xFFFFFFFF
+#define TSS_LIMIT				0xFFFFFFFF
+#define LDT_LIMIT				0xFFFFFFFF
 
 #define _SELECTOR_KER_CS		(GDT_INDEX_KERNEL_CS*8)
 #define _SELECTOR_KER_DS		(GDT_INDEX_KERNEL_DS*8)
@@ -236,4 +242,6 @@ void init_gdt();
 void register_int_handler(u8 num, int_handler_ptr func);
 
 void gdt_set_gate(u8 num, u16 flags, u32 base, u32 limit);
+
+void idt_set_gate(u8 num, u32 base, u16 selector, u8 flags);
 
