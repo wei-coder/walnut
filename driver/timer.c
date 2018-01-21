@@ -1,3 +1,10 @@
+/*
+filename:	timer.c
+author:		wei-coder
+date:		2017-12
+purpose:	时钟中断相关函数定义
+*/
+
 #include "timer.h"
 #include "io.h"
 #include "pm.h"
