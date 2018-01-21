@@ -3,8 +3,8 @@
 ;date:	   2017-12
 ;purpose:  进入保护模式
 
-_SELECTOR_KER_DS	equ 	0x60
-_SELECTOR_KER_CS	equ	0x68
+_SELECTOR_KER_DS	equ 	0x68
+_SELECTOR_KER_CS	equ	0x60
 
 [GLOBAL gdt_loader]
 
