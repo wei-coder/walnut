@@ -27,39 +27,6 @@ u32 end_addr = 0;
 u32 start_addr = 0;
 
 static void page_fault(int_cont_t * context);
-/* 如下链表操作函数计划实现伙伴算法，暂时不用
-void l_insert(list_t* plist, node_t* pNode)
-{
-	if (NULL == plist)
-	{
-		return;
-	};
-	if (NULL == plist->head)
-	{
-		pNode->next = NULL;
-		pNode->prev = NULL;
-		plist->head = pNode;
-		plist->tail = pNode;
-	}
-	else
-	{
-		pNode->next = NULL;
-		pNode->prev = plist->tail;
-		plist->tail->next = pNode;
-		plist->tail = pNode;
-	};
-};
-
-void l_pop(list_t* plist)
-{
-	node_t* tmpNode = plist->head;
-	plist->head = plist->head->next;
-	if (NULL != plist->head)
-	{
-		plist->head->prev = NULL;
-	};
-};
-*/
 
 void show_mem_map()
 {
@@ -177,11 +144,13 @@ void page_fault(int_cont_t * context)
 	if ( !(context->err_code & 0x1))
 	{
 		show_string_color("Because the page wasn't present.\n", black, red);
+		do_no_page();
 	}
 
 	if (context->err_code & 0x2) 
 	{
 		show_string_color("Write error.\n", black, red);
+		do_wp_page();
 	}
 	else
 	{
@@ -228,18 +197,10 @@ void init_vmm()
 		j++;
 	}
 
-	//printf("0xE0000000's pte addr = 0x%08X; pte = 0x%08X\n", pdt[PDT_INDEX(0xE0000000)], pte[PTE_INDEX(0xE0000000)]);
-	//printf("pdt start---addr=0x%08X: pdt[%d] = 0x%08X. pdt end---addr=0x%08X: pdt[%d] = 0x%08X\n", &pdt[PDT_INDEX(PAGE_OFFSET)], PDT_INDEX(PAGE_OFFSET), pdt[PDT_INDEX(PAGE_OFFSET)], &pdt[i-1],i-1, pdt[i-1]);
-
 	for(i = 1; i<kern_page_count; i++)
 	{
 		pte[i] =  (i << 12) | PAGE_FLAG;
 	}
-	//printf("PTE start---addr=0x%08X: pte[1] = 0x%08X. PTE end---addr=0x%08X: pte[%d] = 0x%08X\n", &pte[1], pte[1], &pte[i-1], i-1, pte[i-1]);
-	//printf("page count = %d\n", kern_page_count);
-	//printf("KERNEL heap start PDT---addr = 0x%08X: pdt[%d] = 0x%08X; start PTE--addr=0x%08X : pte[%d] = 0x%08X\n",&pdt[PDT_INDEX(HEAP_START)], PDT_INDEX(HEAP_START),pdt[PDT_INDEX(HEAP_START)], &pte[PTE_INDEX(HEAP_START)], PTE_INDEX(HEAP_START), pte[PTE_INDEX(HEAP_START)]);
-	//printf("low addr = 0x%08X; high addr = 0x%08X\n", start_addr, end_addr);
-	//printf("kmalloc addr = 0x%08X\n", (u32)kmalloc);
 	
 	register_int_handler(14, &page_fault);
 	
@@ -253,8 +214,6 @@ void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
 	u32 pte_idx = PTE_INDEX(va); 
 	
 	pte_t *pte = (pte_t *)((u32)pdt_now[pdt_idx] & PAGE_MASK);
-	//printf("MAP pte phy addr = 0x%08X, flage = %d\n", (u32)pte, flags);
-	//printf("new flags = %d\n", flags);
 	
 	if (!pte)
 	{
@@ -272,7 +231,6 @@ void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
 	}
 
 	pte[pte_idx] = (pte_t)((pa & PAGE_MASK) | flags);
-	//printf("MAP va = 0x%08X; pa = 0x%08X, pte[%d]=0x%08X\n", va, pa, pte_idx, pte[pte_idx]);
 	// 通知 CPU 更新页表缓存
 	asm volatile ("invlpg (%0)" : : "a" (va));
 }
@@ -316,11 +274,72 @@ u32 get_mapping(pdt_t *pdt_now, u32 va, u32 *pa)
 	if ((u32)pte[pte_idx] != 0 && pa)
 	{
 		*pa = (u32)pte[pte_idx] & PAGE_MASK;
-		//printf("get mapping pa = 0x%08X\n", *pa);
 		return 1;
 	}
 
 	return 0;
 }
 
+#if 0
+void do_no_page(ulong error_code,ulong address)
+{
+	int nr[4];
+	ulong tmp;
+	ulong page;
+	int block,i;
 
+	address &= 0xfffff000;
+	tmp = address - current->start_code;
+	if (!current->executable || tmp >= current->end_data)
+	{
+		get_empty_page(address);
+		return;
+	}
+	if (share_page(tmp))
+		return;
+	if (!(page = get_free_page()))
+		oom();
+/* remember that 1 block is used for header */
+	block = 1 + tmp/BLOCK_SIZE;
+	for (i=0 ; i<4 ; block++,i++)
+		nr[i] = bmap(current->executable,block);
+	bread_page(page,current->executable->i_dev,nr);
+	i = tmp + 4096 - current->end_data;
+	tmp = page + 4096;
+	while (i-- > 0)
+	{
+		tmp--;
+		*(char *)tmp = 0;
+	}
+	if (put_page(page,address))
+		return;
+	free_page(page);
+	oom();
+}
+
+void un_wp_page(ulong * table_entry)
+{
+	ulong old_page,new_page;
+
+	old_page = 0xfffff000 & *table_entry;
+	if (old_page >= LOW_MEM && mem_map[MAP_NR(old_page)]==1)
+	{
+		*table_entry |= 2;
+		invalidate();
+		return;
+	}
+	if (!(new_page=get_free_page()))
+		oom();
+	if (old_page >= LOW_MEM)
+		mem_map[MAP_NR(old_page)]--;
+	*table_entry = new_page | 7;
+	invalidate();
+	copy_page(old_page,new_page);
+}
+
+void do_wp_page(ulong error_code,ulong address)
+{
+	un_wp_page((ulong *)(((address>>10) & 0xffc) + (0xfffff000 &	*((ulong *) ((address>>20) &0xffc)))));
+}
+
+#endif
