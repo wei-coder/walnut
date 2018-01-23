@@ -39,16 +39,27 @@ void verify_area (void *addr, int size)
 
 // 设置新任务的代码和数据段基址、限长并复制页表。
 // nr 为新任务号；p 是新任务数据结构的指针。
-int copy_mem (int nr, struct task_struct *p)
+int copy_mem (int nr, struct task_struct *p, struct task_struct *father)
 {
-	new_data_base = new_code_base = nr * 0x4000000;	// 新基址=任务号*64Mb(任务大小)。
-	p->start_code = new_code_base;
+	ulong proc_pdt = get_free_page();
+	u32 new_pdt_phy_addr = 0;
+	u32 old_pdt = father->pdt;
+	long size = 0;
 
-	if (copy_page_tables (old_data_base, new_data_base, data_limit))
-    {				// 复制代码和数据段。
-		free_page_tables (new_data_base, data_limit);	// 如果出错则释放申请的内存。
+	//old_pdt = task[nr]
+	
+	if(!get_mapping((pdt_t*)pdt, proc_pdt, &new_pdt_phy_addr))
+	{
 		return -ENOMEM;
-    }
+	}
+	
+	p->tss->cr3 = (long)new_pdt_phy_addr;
+
+	if (copy_page_tables (old_pdt, (ulong)proc_pdt, size))
+	{				// 复制代码和数据段。
+		free_page_tables ((ulong)proc_pdt, size);	// 如果出错则释放申请的内存。
+		return -ENOMEM;
+	}
 	return 0;
 }
 
@@ -66,7 +77,7 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 	struct task_struct *p;
 	int i;
 
-	p = (struct task_struct *)alloc_page();	// 为新任务数据结构分配内存。
+	p = (struct task_struct *)get_free_page();	// 为新任务数据结构分配内存。
 	if (!p)			// 如果内存分配出错，则返回出错码并退出。
 		return -EAGAIN;
 	task[nr] = p;			// 将新任务结构指针放入任务数组中。
@@ -106,11 +117,11 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 	p->tss.fs = fs & 0xffff;
 	p->tss.gs = gs & 0xffff;
 	p->tss.ldt = _SELECTOR_LDT;	// 该新任务nr 的局部描述符表选择符（LDT 的描述符在GDT 中）。
-	p->tss.trace_bitmap = 0x80000000;
+	p->tss.io_bitmap = 0x80000000;
 
 // 设置新任务的代码和数据段基址、限长并复制页表。如果出错（返回值不是0），则复位任务数组中
 // 相应项并释放为该新任务分配的内存页。
-	if (copy_mem (nr, p))
+	if (copy_mem(nr, p, current))
 	{				// 返回不为0 表示出错。
 		task[nr] = NULL;
 		free_page ((long) p);
@@ -128,9 +139,34 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 
 
 // 为新进程取得不重复的进程号last_pid，并返回在任务数组中的任务号(数组index)。
-int find_empty_process (void)
+int find_empty_process(void)
 {
-	return 2;
+    int i;
+
+    repeat:
+// 如果last_pid 增1 后超出其正数表示范围，则重新从1 开始使用pid 号。
+        if ((++last_pid)<0) 
+        {
+            last_pid=1;
+        }
+// 在任务数组中搜索刚设置的pid 号是否已经被任何任务使用。如果是则重新获得一个pid 号。        
+        for(i=0 ; i<NR_TASKS ; i++)
+        {
+            if (task[i] && task[i]->pid == last_pid)
+            {
+                goto repeat;
+            }
+        }
+        
+// 在任务数组中为新任务寻找一个空闲项，并返回项号。last_pid 是一个全局变量，不用返回。        
+    for(i=1 ; i<NR_TASKS ; i++)
+    {
+        if (!task[i])
+        {
+            return i;
+        }
+    }
+    return -EAGAIN;
 }
 
 #endif
