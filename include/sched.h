@@ -78,6 +78,7 @@ extern u32* pdt;
 	NULL,\
 	NULL,\
 	0,\
+	pdt\
 	{\
 		0,\
 		PAGE_SIZE + (long) (&init_task),\
@@ -86,7 +87,7 @@ extern u32* pdt;
 		0,\
 		0,\
 		0,\
-		(long) &pdt,\
+		(long) pdt-PAGE_OFFSET,\
 		0,\
 		0,\
 		0,\

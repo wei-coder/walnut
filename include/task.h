@@ -100,6 +100,7 @@ typedef struct task_struct
 	u32 *root;						//根目录i 节点结构。暂时通过普通指针代替
 	u32 *executable;				//执行文件i 节点结构。暂时通过普通指针代替
 	ulong close_on_exec;			//执行时关闭文件句柄位图标志。（参见include/fcntl.h）
+	u32	* pdt;
 
 	//struct desc_t ldt[3];			//本任务的局部表描述符。0-空，1-代码段cs，2-数据和堆栈段ds&ss。
 	tss_struct tss;				//本进程的任务状态段信息结构。
