@@ -21,14 +21,17 @@ extern u8 kern_end[];
 #define USED		0x01
 #define FREE		0x00
 
-#define 		PDT_FLAG	0x03
+#define 	PDT_FLAG	0x03
 #define		PAGE_FLAG	0x03
-
-#define		PROC_PAGE_FLAG	0x07
 
 #define	pdt_t u32
 #define pte_t u32
 
+/*高端内存起始地址为0x38000000，低于此地址的内存为直接映射*/
+#define HIGH_MEM_ADDR	0x38000000
+
+/*管理的物理内存起始地址为0x100000*/
+#define NOMAL_MEM_ADDR	0x100000
 
 /*页目录表表项结构
 typedef struct PDT
@@ -62,17 +65,17 @@ typedef struct PTE
 		u32	page;
 		struct
 		{
-			u8 present:1;				//是否在物理内存中
-			u8 rw:1;					//读写权限0:只读 1:读写
-			u8 us:1;					//user / supervisor 0:系统级 1:用户级
-			u8 pwt:1;					//缓冲策略，0:write back 1:write through
-			u8 pcd:1;					//0:可以被缓冲，1:不可以被缓冲
-			u8 access:1;				//0:未被访问 1:已经被访问
+			u8 present:1;			//是否在物理内存中
+			u8 rw:1;				//读写权限0:只读 1:读写
+			u8 us:1;				//user / supervisor 0:系统级 1:用户级
+			u8 pwt:1;				//缓冲策略，0:write back 1:write through
+			u8 pcd:1;				//0:可以被缓冲，1:不可以被缓冲
+			u8 access:1;			//0:未被访问 1:已经被访问
 			u8 dirty:1;				//页的内容是否修改过，1:修改过
-			u8 pat:1;					//page attribute table条目，p3以后才支持
-			u8 global:1;				//全局页
+			u8 pat:1;				//page attribute table条目，p3以后才支持
+			u8 global:1;			//全局页
 			u8 avail:3;				//允许系统程序员使用
-			u32 page_addr:20;			//页基地址
+			u32 page_addr:20;		//页基地址
 		};
 	};
 }pte_t;
