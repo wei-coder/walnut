@@ -11,11 +11,13 @@
 multiboot_t *glb_mboot_ptr;
 
 /*页目录表和页表的定义*/
-u32*		pdt;
-u32*		pte;
+pdt_t*		pdt;
 
 /*使用linux0.11的方案，采用字节数组来标记内存占用*/
-static unsigned char mem_map[PAGE_COUNT] = {0};
+static u8* mem_map = NULL;
+
+/*高端内存的映射表*/
+static u8* high_map = NULL;
 
 /*记录实际管理的物理页数量*/
 u32 page_count = 0;
@@ -23,7 +25,7 @@ u32 page_count = 0;
 /*记录实际管理的物理页的最高地址*/
 u32 end_addr = 0;
 
-/*记录实际管理的物理页的起始地址*/
+/*记录实际管理物理页的起始地址*/
 u32 start_addr = 0;
 
 static void page_fault(int_cont_t * context);
@@ -50,50 +52,36 @@ void init_pmm()
 	对页表进行初始化。*/
 	mmap_entry_t* mmap_entry = (mmap_entry_t*)(glb_mboot_ptr->mmap_addr);
 	u32 mmap_length = glb_mboot_ptr->mmap_length;
+	int i = 0;
 
 	while(mmap_length-- )
 	{	
-		/*type = 1表示是可用物理内存，从0x100000开始的内存为内核加载的内存
-		0x0~0x100000之间的内存空间是bootloader的加载位置，暂时不用*/
-		if((mmap_entry->type == 1) && (mmap_entry->base_addr_low == 0x100000))
+		/*type = 1表示是可用物理内存*/
+		if((mmap_entry->type == 1) && (kern_start == mmap_entry->base_addr_low))
 		{
-			/*真实用户分页的内存大小为从PTE表之后到物理内存最高地址，此地址为物理地址*/
-			end_addr = mmap_entry->base_addr_low + mmap_entry->length_low;
-			
-			/*物理页的个数就等于内存长度除以物理页大小*/
+			/*物理页面数*/
 			page_count = mmap_entry->length_low/PAGE_SIZE;
-
-			/*PDT放在内核之后的内存，此地址是线性地址*/
-			pdt = (u32*)(mmap_entry->base_addr_low + (u32)(kern_end - kern_start) + PAGE_OFFSET);
-			
-			/*PTE放在PDT之后的内存，此地址是线性地址*/
-			pte = (u32*)((u32)pdt + 4*PDT_LEN);
-
-			/*获得PTE表的个数，保证4096字节对齐*/
-			u32 pte_count = page_count/PDT_LEN;
-			if(page_count%PDT_LEN)
+			/*mem_map占用的物理页面数*/
+			int map_size = page_count/PAGE_SIZE;
+			if(page_count%PAGE_SIZE)
 			{
-				pte_count++;
+				map_size++;
 			}
-
-			/*内核管理的物理内存从页表结束开始，此地址为物理地址*/
-			start_addr = (u32)pte + pte_count*PTE_LEN*4 - PAGE_OFFSET;
-
-			/*PDT和PTE清零*/
-			memset(pdt,0, PDT_LEN*4);
-			memset(pte,0, pte_count*PTE_LEN*4);
-
-			int i = 0;
-			for( ; i<(end_addr - start_addr)/PAGE_SIZE; i++)
+			mem_map = (u8*)kern_end;
+			/*内核及mem_map占用的空间标记为USED*/
+			for( ; i<(kern_end- kern_start)/PAGE_SIZE + map_size; i++)
 			{
-				/*内核管理的物理内存从内核结束地址开始，由start_addr记录，最高物理内存由end_addr记录*/
+				mem_map[i] = USED;
+			}
+			start_addr = (u32)(&mem_map[i+1]);
+			for(; i<page_count; i++)
+			{
+				/*内核映像之外的物理内存，标记为FREE*/
 				mem_map[i] = FREE;
 			}
 		}
 		mmap_entry++;
 	}
-	
-	register_int_handler(14, &page_fault);
 }
 
 /*此函数根据页的物理地址释放一个物理页*/
@@ -126,7 +114,7 @@ void* alloc_page()
 	{
 		if(FREE == mem_map[i]) 
 		{
-			ret = start_addr + i*PAGE_SIZE;
+			ret = NOMAL_MEM_ADDR + i*PAGE_SIZE;
 			mem_map[i] = USED;
 			return (void *)ret;
 		}
@@ -187,22 +175,29 @@ void init_vmm()
 {
 	int i = 0;
 	int j = 0;
+	pte_t* pte = NULL;
+
+	/*给pdt申请物理页面*/
+	pdt = alloc_page() + PAGE_OFFSET;
 	
-	/*仅将内核及页目录表和页表的物理页映射到线性空间*/
-	u32 kern_page_count = start_addr/PAGE_SIZE;
-	
-	for(i=PDT_INDEX(PAGE_OFFSET); i < PDT_INDEX(PAGE_OFFSET) + page_count/PTE_LEN + 1; i++)
+	/*将高端内存一下的物理页映射到线性空间*/
+	u32 kern_page_count = HIGH_MEM_ADDR/PAGE_SIZE;
+	int pte_cont = page_count/PTE_LEN;
+	if(page_count%PTE_LEN)
 	{
+		pte_cont++;
+	}
+	
+	for(i=PDT_INDEX(PAGE_OFFSET); i < PDT_INDEX(PAGE_OFFSET) + pte_cont; i++)
+	{
+		pte = alloc_page();
 		/*将内核空间映射到0xC000 0000 ~0xFFFF FFFF*/
-		pdt[i] = ((u32)pte + PTE_LEN*j*4 - PAGE_OFFSET) | PDT_FLAG;
-		j++;
+		pdt[i] = pte | PDT_FLAG;
 	}
 
-	//将物理低地址映射到0xC0000000开始的线性地址空间
-	//线性地址0x0~0xBFFFFFFF之间对应的页表留空，对低地址的访问会导致缺页异常。
-	//int start_index = PDT_INDEX(PAGE_OFFSET) * PTE_LEN + PTE_INDEX(PAGE_OFFSET);
 	for(i = 1; i<kern_page_count; i++)
 	{
+		/*将物理地址0x0~0x38000000映射到0xC000 0000 ~0xF800 0000*/
 		pte[i] =  (i << 12) | PAGE_FLAG;
 	}
 	
@@ -212,7 +207,6 @@ void init_vmm()
 	asm volatile ("mov %0, %%cr3" : : "r" (pdt_phy_addr));
 };
 
-/*将物理地址映射到线性地址*/
 void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
 { 	
 	u32 pdt_idx = PDT_INDEX(va);
@@ -226,7 +220,7 @@ void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
 		pte = (pte_t *)alloc_page();
 		/*使页目录指向页表*/
 		pdt_now[pdt_idx] = (pdt_t)((u32)pte | PDT_FLAG);
-		//此处有问题
+
 		memset((void*)((u32)pte + PAGE_OFFSET), 0, PAGE_SIZE);
 	}
 	else
@@ -240,7 +234,6 @@ void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
 	asm volatile ("invlpg (%0)" : : "a" (va));
 }
 
-/*取消VA到PA的映射*/
 void unmap(pdt_t * pdt_now, u32 va)
 {
 	u32 pgd_idx = PDT_INDEX(va);
@@ -262,8 +255,6 @@ void unmap(pdt_t * pdt_now, u32 va)
 	asm volatile ("invlpg (%0)" : : "a" (va));
 }
 
-
-/*根据线性地址获得物理地址*/
 u32 get_mapping(pdt_t *pdt_now, u32 va, u32 *pa)
 {
 	u32 pgd_idx = PDT_INDEX(va);
@@ -288,63 +279,14 @@ u32 get_mapping(pdt_t *pdt_now, u32 va, u32 *pa)
 	return 0;
 }
 
-/*
-获取一个物理页，并映射到页表返回线性地址
-*/
-unsigned long get_free_page(void)
+#if 1
+
+void get_empty_page(ulong address)
 {
 	u32 page = (u32)alloc_page();
-	if(0xFFF & page)
-	{
-		return NULL;
-	}
-	
-	u32 kern_page_count = start_addr/PAGE_SIZE;
-
-	int i = 0;
-	int j = 0;
-	for(i = PDT_INDEX(PAGE_OFFSET); i< PDT_LEN; i++)
-	{
-		pte_t *pte = (pte_t *)((u32)pdt[i] & PAGE_MASK);
-		if(NULL == pte)
-		{
-			pte = (pte_t*)alloc_page();
-			/*使页目录指向页表*/
-			pdt[i] = (pdt_t)((u32)pte | PDT_FLAG);
-			//申请的物理页保存在页目录表中，CPU直接访问该物理地址
-			//此时对该内存的访问，不能通过线性地址
-			memset((void*)((u32)pte + PAGE_OFFSET), 0, PAGE_SIZE);
-		}
-		for(j = 0; j<PTE_LEN; j++)
-		{
-			if(pte[j])
-		}
-	}
-	
-	pte_t *pte = (pte_t *)((u32)pdt[PDT_INDEX(PAGE_OFFSET)] & PAGE_MASK);
-	if (!pte)
-	{
-		return 0;
-	}
-	
-	// 转换到内核线性地址
-	pte = (pte_t *)((u32)pte + PAGE_OFFSET);
-
-	int i = 0;
-	for( i = kern_page_count; i<page_count; i++)
-	{
-		if(0 = pte[i])
-		{
-			pte[i] = (pte_t)((page & PAGE_MASK) | PAGE_FLAG);
-			// 通知 CPU 更新页表缓存
-			asm volatile ("invlpg (%0)" : : "a" (va));
-
-		}
-	}
-	return ((i<<12) & PAGE_MASK);
+	map(pdt,address,page,PAGE_FLAG);
 }
 
-#if 1
 void do_no_page(ulong error_code,ulong address)
 {
 	int nr[4];
@@ -406,14 +348,4 @@ void do_wp_page(ulong error_code,ulong address)
 	un_wp_page((ulong *)(((address>>10) & 0xffc) + (0xfffff000 &	*((ulong *) ((address>>20) &0xffc)))));
 }
 
-/*复制父进程页表到子进程页表*/
-int copy_page_tables(ulong from,ulong to,long size)
-{
-	int i = 0;
-	for(i = 0;)
-}
-
-int free_page_tables (ulong from, ulong size)
-{
-}
 #endif
