@@ -1,23 +1,22 @@
+
+
 #include "memory.h"
-#include "multiboot.h"
 #include "console.h"
 #include "logging.h"
 #include "pm.h"
 #include "kern_debug.h"
 #include "string.h"
 #include "heap.h"
+#include "sched.h"
 
 // 内核未建立分页机制前暂存的指针
 multiboot_t *glb_mboot_ptr;
-
-/*页目录表和页表的定义*/
-pdt_t*		pdt;
 
 /*使用linux0.11的方案，采用字节数组来标记内存占用*/
 static u8* mem_map = NULL;
 
 /*高端内存的映射表*/
-static u8* high_map = NULL;
+//static u8* high_map = NULL;
 
 /*记录实际管理的物理页数量*/
 u32 page_count = 0;
@@ -27,6 +26,15 @@ u32 end_addr = 0;
 
 /*记录实际管理物理页的起始地址*/
 u32 start_addr = 0;
+
+/*内核全局页目录表*/
+pdt_t* pdt;
+
+#define invalidate() asm volatile("mov %0,%%cr3"::"r" (current->pdt))
+
+// 复制1 页内存（4K 字节）。
+#define copy_page(from,to) \
+asm volatile("cld ; rep ; movsb"::"S" (from),"D" (to),"c" (4096):)
 
 static void page_fault(int_cont_t * context);
 
@@ -57,8 +65,10 @@ void init_pmm()
 	while(mmap_length-- )
 	{	
 		/*type = 1表示是可用物理内存*/
-		if((mmap_entry->type == 1) && (kern_start == mmap_entry->base_addr_low))
+		if((mmap_entry->type == 1) && (NOMAL_MEM_ADDR == mmap_entry->base_addr_low))
 		{
+			/*mem_map放在kern_end之后*/
+			mem_map = (u8*)kern_end;
 			/*物理页面数*/
 			page_count = mmap_entry->length_low/PAGE_SIZE;
 			/*mem_map占用的物理页面数*/
@@ -67,13 +77,14 @@ void init_pmm()
 			{
 				map_size++;
 			}
-			mem_map = (u8*)kern_end;
+			/*可分配内存从mem_map结束的地址开始，需要注意页对齐*/
+			start_addr = (u32)kern_end + map_size*PAGE_SIZE;
 			/*内核及mem_map占用的空间标记为USED*/
 			for( ; i<(kern_end- kern_start)/PAGE_SIZE + map_size; i++)
 			{
 				mem_map[i] = USED;
 			}
-			start_addr = (u32)(&mem_map[i+1]);
+
 			for(; i<page_count; i++)
 			{
 				/*内核映像之外的物理内存，标记为FREE*/
@@ -122,6 +133,69 @@ void* alloc_page()
 	return (void *)ret;
 }
 
+#if 1
+
+/*缺页异常的处理函数*/
+void do_no_page(u32 error_code, u32 address)
+{
+	if(!(error_code & 0x1))
+	{
+		return;
+	}
+	/*页对齐*/
+	address &= 0xfffff000;
+	u32 page = (u32)alloc_page();
+	map(pdt,address,page,PAGE_FLAG);
+	return;
+}
+
+/*取消写保护处理函数*/
+void un_wp_page(u32 * table_entry)
+{
+	u32 old_page,new_page;
+
+	old_page = 0xfffff000 & *table_entry;
+	if (old_page >= NOMAL_MEM_ADDR && mem_map[MAP_INDEX(old_page)]==USED)
+	{
+		*table_entry |= 2;
+		invalidate();
+		return;
+	}
+	new_page = (u32)alloc_page();
+	if (!new_page)
+	{
+		printf("there is no free page;\n");
+	}
+	if (old_page >= NOMAL_MEM_ADDR)
+		mem_map[MAP_INDEX(old_page)]--;
+	*table_entry = new_page | 7;
+	invalidate();
+	copy_page(old_page,new_page);
+}
+
+/*写保护异常处理函数*/
+void do_wp_page(u32 error_code,u32 address)
+{
+	un_wp_page((u32 *)(((pdt[PDT_INDEX(address)]) & 0xffc) + (0xfffff000 &	*((u32 *) ((address>>20) &0xffc)))));
+}
+
+void * get_virt_page()
+{
+	u32 page = (u32)alloc_page();
+	if(NULL != page)
+	{
+		return (void*)(page+PAGE_OFFSET);
+	}
+	return NULL;
+}
+
+void free_virt_page(u32 p)
+{
+	free_page(p-PAGE_OFFSET);
+}
+
+#endif
+
 void page_fault(int_cont_t * context)
 {
 	u32 cr2;
@@ -133,13 +207,13 @@ void page_fault(int_cont_t * context)
 	if ( !(context->err_code & 0x1))
 	{
 		show_string_color("Because the page wasn't present.\n", black, red);
-		do_no_page();
+		do_no_page(context->err_code, cr2);
 	}
 
 	if (context->err_code & 0x2) 
 	{
 		show_string_color("Write error.\n", black, red);
-		do_wp_page();
+		do_wp_page(context->err_code, cr2);
 	}
 	else
 	{
@@ -174,37 +248,42 @@ void page_fault(int_cont_t * context)
 void init_vmm()
 {
 	int i = 0;
-	int j = 0;
 	pte_t* pte = NULL;
 
 	/*给pdt申请物理页面*/
 	pdt = alloc_page() + PAGE_OFFSET;
-	
-	/*将高端内存一下的物理页映射到线性空间*/
+	if((u32)pdt == PAGE_OFFSET)
+	{
+		printf("alloc page fault!\n");
+		return;
+	}
+
+	/*将高端内存以下的物理页映射到线性空间*/
 	u32 kern_page_count = HIGH_MEM_ADDR/PAGE_SIZE;
 	int pte_cont = page_count/PTE_LEN;
 	if(page_count%PTE_LEN)
 	{
 		pte_cont++;
 	}
-	
+
 	for(i=PDT_INDEX(PAGE_OFFSET); i < PDT_INDEX(PAGE_OFFSET) + pte_cont; i++)
 	{
 		pte = alloc_page();
 		/*将内核空间映射到0xC000 0000 ~0xFFFF FFFF*/
-		pdt[i] = pte | PDT_FLAG;
+		pdt[i] = (u32)pte | PDT_FLAG;
 	}
-
+	
+	pte = (pte_t*)((u32)pdt + PAGE_SIZE);
 	for(i = 1; i<kern_page_count; i++)
 	{
 		/*将物理地址0x0~0x38000000映射到0xC000 0000 ~0xF800 0000*/
 		pte[i] =  (i << 12) | PAGE_FLAG;
 	}
-	
+
 	register_int_handler(14, &page_fault);
 	
 	u32 pdt_phy_addr = (u32)pdt - PAGE_OFFSET;
-	asm volatile ("mov %0, %%cr3" : : "r" (pdt_phy_addr));
+	asm volatile ("mov %0,%%cr3" : : "r" (pdt_phy_addr));
 };
 
 void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
@@ -279,73 +358,57 @@ u32 get_mapping(pdt_t *pdt_now, u32 va, u32 *pa)
 	return 0;
 }
 
-#if 1
-
-void get_empty_page(ulong address)
+int copy_page_tables (u32* from, u32* to)
 {
-	u32 page = (u32)alloc_page();
-	map(pdt,address,page,PAGE_FLAG);
-}
-
-void do_no_page(ulong error_code,ulong address)
-{
-	int nr[4];
-	ulong tmp;
-	ulong page;
-	int block,i;
-
-	address &= 0xfffff000;
-	tmp = address - current->start_code;
-	if (!current->executable || tmp >= current->end_data)
+	pte_t* pte = NULL;
+	u32 from_page = 0;
+	u32 to_page = 0;
+	
+	if((NULL == from) ||(NULL == to))
 	{
-		get_empty_page(address);
-		return;
+		return FALSE;
 	}
-	if (share_page(tmp))
-		return;
-	if (!(page = get_free_page()))
-		oom();
-/* remember that 1 block is used for header */
-	block = 1 + tmp/BLOCK_SIZE;
-	for (i=0 ; i<4 ; block++,i++)
-		nr[i] = bmap(current->executable,block);
-	bread_page(page,current->executable->i_dev,nr);
-	i = tmp + 4096 - current->end_data;
-	tmp = page + 4096;
-	while (i-- > 0)
-	{
-		tmp--;
-		*(char *)tmp = 0;
-	}
-	if (put_page(page,address))
-		return;
-	free_page(page);
-	oom();
-}
 
-void un_wp_page(ulong * table_entry)
-{
-	ulong old_page,new_page;
-
-	old_page = 0xfffff000 & *table_entry;
-	if (old_page >= LOW_MEM && mem_map[MAP_NR(old_page)]==1)
+	//先复制PDT表以及PTE表
+	int i = 0;
+	for(; i < PDT_LEN; i++)
 	{
-		*table_entry |= 2;
-		invalidate();
-		return;
+		if(from[i] & 0x01)
+		{
+			pte = alloc_page();
+			//copy父进程的page flag
+			to[i] = (u32)pte | (from[i] & FLAG_MASK);
+			from_page = (from[i]+PAGE_OFFSET)&PAGE_MASK;
+			to_page = (to[i]+PAGE_OFFSET)&PAGE_MASK;
+			copy_page(from_page, to_page);
+		}
 	}
-	if (!(new_page=get_free_page()))
-		oom();
-	if (old_page >= LOW_MEM)
-		mem_map[MAP_NR(old_page)]--;
-	*table_entry = new_page | 7;
+
 	invalidate();
-	copy_page(old_page,new_page);
+	return 0;
 }
 
-void do_wp_page(ulong error_code,ulong address)
+int free_page_tables(u32 pdt_addr)
 {
-	un_wp_page((ulong *)(((address>>10) & 0xffc) + (0xfffff000 &	*((ulong *) ((address>>20) &0xffc)))));
-}
+	u32* proc_pdt = (u32*)pdt_addr;
 
-#endif
+	if(NULL == proc_pdt) 
+	{
+		return FALSE;
+	}
+
+	//释放页表
+	int i = 0;
+	for(; i < PDT_LEN; i++)
+	{
+		if(proc_pdt[i] & 0x01)
+		{
+			free_page(proc_pdt[i]&PAGE_MASK);
+		}
+	}
+
+	free_page(pdt_addr);
+
+	invalidate(); 
+	return 0;
+}
