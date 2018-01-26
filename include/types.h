@@ -17,6 +17,11 @@ purpose:	内核的全局类型定义
 	#define FALSE 0
 #endif
 
+#ifndef _PTRDIFF_T
+#define _PTRDIFF_T
+typedef long ptrdiff_t;
+#endif
+
 
 //u~unsigned; s~signed
 typedef unsigned long		ulong;
