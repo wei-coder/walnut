@@ -7,12 +7,20 @@ purpose:	fork进程的相关函数实现
 
 #if 1
 
+#define __LIBRARY__
+
 #include "types.h"
-#include "sched.h"
+#include "unistd.h"
 #include "errorno.h"
-#include "pm.h"
+#include "string.h"
+#include "memory.h"
+#include "sched.h"
 
 long last_pid=0;
+
+
+inline _syscall0(int,fork)
+
 
 #if 0
 /*
@@ -36,31 +44,23 @@ void verify_area (void *addr, int size)
 	}
 }
 #endif
-
 // 设置新任务的代码和数据段基址、限长并复制页表。
 // nr 为新任务号；p 是新任务数据结构的指针。
-int copy_mem (int nr, struct task_struct *p, struct task_struct *father)
+int copy_mem(int nr,struct task_struct * proc, struct task_struct * f_proc)
 {
-	ulong proc_pdt = get_free_page();
-	u32 new_pdt_phy_addr = 0;
-	u32 old_pdt = father->pdt;
-	long size = 0;
-
-	//old_pdt = task[nr]
-	
-	if(!get_mapping((pdt_t*)pdt, proc_pdt, &new_pdt_phy_addr))
+	proc->pdt = alloc_page();
+	if(NULL != proc->pdt)
 	{
-		return -ENOMEM;
+		memset(proc->pdt+PAGE_OFFSET, 0, PAGE_SIZE);
 	}
 	
-	p->tss->cr3 = (long)new_pdt_phy_addr;
-
-	if (copy_page_tables (old_pdt, (ulong)proc_pdt, size))
-	{				// 复制代码和数据段。
-		free_page_tables ((ulong)proc_pdt, size);	// 如果出错则释放申请的内存。
-		return -ENOMEM;
+	if (copy_page_tables(f_proc->pdt, proc->pdt)) 
+	{
+		return TRUE;
 	}
-	return 0;
+	free_page_tables((u32)proc->pdt);
+	return -ENOMEM;
+
 }
 
 
@@ -74,10 +74,9 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 				  long fs, long es, long ds,
 				  long eip, long cs, long eflags, long esp, long ss)
 {
-	struct task_struct *p;
-	int i;
+	struct task_struct *p = NULL;
 
-	p = (struct task_struct *)get_free_page();	// 为新任务数据结构分配内存。
+	p = (struct task_struct *)get_virt_page();	// 为新任务数据结构分配内存。
 	if (!p)			// 如果内存分配出错，则返回出错码并退出。
 		return -EAGAIN;
 	task[nr] = p;			// 将新任务结构指针放入任务数组中。
@@ -121,10 +120,10 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 
 // 设置新任务的代码和数据段基址、限长并复制页表。如果出错（返回值不是0），则复位任务数组中
 // 相应项并释放为该新任务分配的内存页。
-	if (copy_mem(nr, p, current))
+	if (FALSE == copy_mem(nr, p, current))
 	{				// 返回不为0 表示出错。
 		task[nr] = NULL;
-		free_page ((long) p);
+		free_virt_page ((u32) p);
 		return -EAGAIN;
 	}
 

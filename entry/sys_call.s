@@ -1,6 +1,8 @@
 ;filename: syscall.s
 ;author:   懒得自己实现，直接借用了linux0.11的实现
 
+%if 1
+
 ;system_call.s 文件包含系统调用(system-call)底层处理子程序。由于有些代码比较类似，所以
 ;同时也包括时钟中断处理(timer-interrupt)句柄。硬盘和软盘的中断处理程序也在这里。
 ;注意：这段代码处理信号(signal)识别，在每次时钟中断和系统调用之后都会进行识别。一般
@@ -67,7 +69,7 @@ reschedule:
 [EXTERN do_signal]
 
 system_call:
-	cmp eax,dword [nr_system_calls-1]    ; 调用号如果超出范围的话就在eax 中置-1 并退出。
+	cmp eax,nr_system_calls-1    ; 调用号如果超出范围的话就在eax 中置-1 并退出。
 	ja bad_sys_call
 	push ds                ; 保存原段寄存器值。
 	push es
@@ -358,4 +360,4 @@ parallel_interrupt:
 	out 0x20,al
 	pop eax
 	iret
-
+%endif

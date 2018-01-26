@@ -4,8 +4,11 @@ author:		暂时借用了linux0.11的实现
 date:		2018-1
 purpose:	系统调用的相关函数实现
 */
-
+#if 1
 #include "syscall.h"
+#include "memory.h"
+#include "console.h"
+#include "errorno.h"
 
 extern long volatile jiffies;							// 从开机开始算起的滴答数时间值（10ms/滴答）。
 extern long startup_time;								// 开机时间。从1970:0:0:0 开始计时的秒数。
@@ -151,11 +154,6 @@ int sys_chdir()
 	return 0;
 }
 
-int sys_time()
-{
-	return 0;
-}
-
 int sys_mknod()
 {
 	return 0;
@@ -167,11 +165,6 @@ int sys_chmod()
 }
 
 int sys_chown()
-{
-	return 0;
-}
-
-int sys_break()
 {
 	return 0;
 }
@@ -196,21 +189,6 @@ int sys_umount()
 	return 0;
 }
 
-int sys_setuid()
-{
-	return 0;
-}
-
-int sys_stime()
-{
-	return 0;
-}
-
-int sys_ptrace()
-{
-	return 0;
-}
-
 int sys_fstat()
 {
 	return 0;
@@ -226,35 +204,17 @@ int sys_utime()
 	return 0;
 }
 
-int sys_stty()
-{
-	return 0;
-}
-int sys_gtty()
-{
-	return 0;
-}
-
 int sys_access()
 {
 	return 0;
 }
 
-int sys_ftime()
-{
-	return 0;
-}
 int sys_sync()
 {
 	return 0;
 }
 
 int sys_kill()
-{
-	return 0;
-}
-
-int sys_rename()
 {
 	return 0;
 }
@@ -279,37 +239,7 @@ int sys_pipe()
 	return 0;
 }
 
-int sys_times()
-{
-	return 0;
-}
-
-int sys_prof()
-{
-	return 0;
-}
-
-int sys_brk()
-{
-	return 0;
-}
-
 int sys_signal()
-{
-	return 0;
-}
-
-int sys_acct()
-{
-	return 0;
-}
-
-int sys_phys()
-{
-	return 0;
-}
-
-int sys_lock()
 {
 	return 0;
 }
@@ -320,26 +250,6 @@ int sys_ioctl()
 }
 
 int sys_fcntl()
-{
-	return 0;
-}
-
-int sys_mpx()
-{
-	return 0;
-}
-
-int sys_ulimit()
-{
-	return 0;
-}
-
-int sys_uname()
-{
-	return 0;
-}
-
-int sys_umask()
 {
 	return 0;
 }
@@ -359,16 +269,6 @@ int sys_dup2()
 	return 0;
 }
 
-int sys_getpgrp()
-{
-	return 0;
-}
-
-int sys_setsid()
-{
-	return 0;
-}
-
 int sys_sigaction()
 {
 	return 0;
@@ -380,16 +280,6 @@ int sys_sgetmask()
 }
 
 int sys_ssetmask()
-{
-	return 0;
-}
-
-int sys_setreuid()
-{
-	return 0;
-}
-
-int sys_setregid()
 {
 	return 0;
 }
@@ -425,11 +315,289 @@ int do_execve(unsigned long * eip,long tmp,char * filename,
 
 void unexpected_hd_interrupt(void)
 {
-	printf("Unexpected HD interrupt\n\r");
+	printf("Unexpected HD interrupt!\n");
 }
 
 
 void unexpected_floppy_interrupt(void)
 {
 }
+
+int sys_ftime()
+{
+    return -ENOSYS;
+}
+
+int sys_break()
+{
+    return -ENOSYS;
+}
+
+int sys_ptrace()
+{
+    return -ENOSYS;
+}
+
+int sys_stty()
+{
+    return -ENOSYS;
+}
+
+int sys_gtty()
+{
+    return -ENOSYS;
+}
+
+int sys_rename()
+{
+    return -ENOSYS;
+}
+
+int sys_prof()
+{
+    return -ENOSYS;
+}
+
+// 设置当前任务的实际以及/或者有效组ID（gid）。如果任务没有超级用户特权，
+// 那么只能互换其实际组ID 和有效组ID。如果任务具有超级用户特权，就能任意设置有效的和实际
+// 的组ID。保留的gid（saved gid）被设置成与有效gid 同值。
+int sys_setregid(int rgid, int egid)
+{
+    if (rgid>0) 
+    {
+        if ( (current->gid == rgid)  )
+        {
+            current->gid = rgid;
+        }
+        else
+        {
+            return(-EPERM);
+        }
+    }
+    
+    if (egid>0) 
+    {
+        if ( (current->gid == egid) 
+          || (current->egid == egid) 
+          || (current->sgid == egid) )
+        {
+            current->egid = egid;
+        }
+        else
+        {
+            return(-EPERM);
+        }
+    }
+    return 0;
+}
+
+// 设置进程组号(gid)。如果任务没有超级用户特权，它可以使用setgid()将其有效gid
+// （effective gid）设置为成其保留gid(saved gid)或其实际gid(real gid)。如果任务有
+// 超级用户特权，则实际gid、有效gid 和保留gid 都被设置成参数指定的gid。
+int sys_setgid(int gid)
+{
+    return(sys_setregid(gid, gid));
+}
+
+int sys_acct()
+{
+    return -ENOSYS;
+}
+
+int sys_phys()
+{
+    return -ENOSYS;
+}
+
+int sys_lock()
+{
+    return -ENOSYS;
+};
+
+int sys_mpx()
+{
+    return -ENOSYS;
+};
+
+int sys_ulimit()
+{
+    return -ENOSYS;
+};
+
+// 返回从1970 年1 月1 日00:00:00 GMT 开始计时的时间值（秒）。如果tloc 不为null，则时间值
+// 也存储在那里。
+int sys_time(long * tloc)
+{
+    int i = 0;
+    return i;
+};
+
+/*
+ * Unprivileged users may change the real user id to the effective uid
+ * or vice versa.
+ */
+/*
+* 无特权的用户可以将实际用户标识符(real uid)改成有效用户标识符(effective uid)，反之也然。
+*/
+// 设置任务的实际以及/或者有效用户ID（uid）。如果任务没有超级用户特权，那么只能互换其
+// 实际用户ID 和有效用户ID。如果任务具有超级用户特权，就能任意设置有效的和实际的用户ID。
+// 保留的uid（saved uid）被设置成与有效uid 同值。
+int sys_setreuid(int ruid, int euid)
+{
+    int old_ruid = current->uid;
+    
+    if (ruid>0) 
+    {
+        if ( (current->euid==ruid) 
+          || (old_ruid == ruid))
+        {
+            current->uid = ruid;
+        }
+        else
+        {
+            return(-EPERM);
+        }
+    }
+    
+    if (euid>0) 
+    {
+        if ( (old_ruid == euid) 
+          || (current->euid == euid))
+        {
+            current->euid = euid;
+        }
+        else 
+        {
+            current->uid = old_ruid;
+            return(-EPERM);
+        }
+    }
+    return 0;
+};
+
+// 设置任务用户号(uid)。如果任务没有超级用户特权，它可以使用setuid()将其有效uid
+// （effective uid）设置成其保留uid(saved uid)或其实际uid(real uid)。如果任务有
+// 超级用户特权，则实际uid、有效uid 和保留uid 都被设置成参数指定的uid。
+int sys_setuid(int uid)
+{
+    return(sys_setreuid(uid, uid));
+};
+
+// 设置系统时间和日期。参数tptr 是从1970 年1 月1 日00:00:00 GMT 开始计时的时间值（秒）。
+// 调用进程必须具有超级用户权限。
+// 个人理解，startup_time为开机时间
+int sys_stime(long * tptr)
+{
+    return 0;
+}
+
+// 获取当前任务时间。tms 结构中包括用户时间、系统时间、子进程用户时间、子进程系统时间。
+int sys_times(u32 * tbuf)
+{
+    return jiffies;
+};
+
+// 当参数end_data_seg 数值合理，并且系统确实有足够的内存，而且进程没有超越其最大数据段大小
+// 时，该函数设置数据段末尾为end_data_seg 指定的值。该值必须大于代码结尾并且要小于堆栈
+// 结尾16KB。返回值是数据段的新结尾值（如果返回值与要求值不同，则表明有错发生）。
+// 该函数并不被用户直接调用，而由libc 库函数进行包装，并且返回值也不一样。
+int sys_brk(unsigned long end_data_seg)
+{
+    if (end_data_seg >= current->end_code &&
+        end_data_seg < current->start_stack - 16384)
+    {
+        current->brk = end_data_seg;
+    }
+    
+    return current->brk;
+};
+
+/*
+ * This needs some heave checking ...
+ * I just haven't get the stomach for it. I also don't fully
+ * understand sessions/pgrp etc. Let somebody who does explain it.
+ */
+// 设置进程的进程组ID 为pgid。
+// 如果参数pid=0，则使用当前进程号。如果pgid 为0，则使用参数pid 指定的进程的组ID 作为
+// pgid。如果该函数用于将进程从一个进程组移到另一个进程组，则这两个进程组必须属于同一个
+// 会话(session)。在这种情况下，参数pgid 指定了要加入的现有进程组ID，此时该组的会话ID
+// 必须与将要加入进程的相同。
+int sys_setpgid(int pid, int pgid)
+{
+	int i;
+
+	if (!pid)
+	{
+		pid = current->pid;
+	}
+
+	if (!pgid)
+	{
+		pgid = current->pid;
+	}
+
+	// 扫描任务数组，查找指定进程号的任务。    
+	for (i=0 ; i<NR_TASKS ; i++)
+	{
+		if (task[i] && task[i]->pid==pid) 
+		{
+			// 如果该任务已经是首领，则出错返回。
+			if (task[i]->leader)
+			{
+				return -EPERM;
+			}
+
+			if (task[i]->session != current->session)
+			{
+				return -EPERM;
+			}
+
+			task[i]->pgrp = pgid;
+			return 0;
+		}
+	}
+	return -ESRCH;
+};
+
+int sys_getpgrp(void)
+{
+    return current->pgrp;
+};
+
+// 创建一个会话(session)（即设置其leader=1），并且设置其会话号=其组号=其进程号。
+// setsid -- SET Session ID。
+int sys_setsid(void)
+{
+// 如果当前进程已是会话首领并且不是超级用户则出错返回。
+    if (current->leader)
+    {
+        return -EPERM;
+    }
+    // 设置当前进程为新会话首领。
+    current->leader = 1;
+    // 设置本进程session = pid。
+    current->session = current->pgrp = current->pid;
+    // 表示当前进程没有控制终端。
+    current->tty = -1;
+    return current->pgrp;
+};
+
+// 获取系统信息。其中utsname 结构包含5 个字段，分别是：本版本操作系统的名称、网络节点名称、
+// 当前发行级别、版本级别和硬件类型名称。
+int sys_uname(u32 * name)
+{
+    return 0;
+};
+
+// 设置当前进程创建文件属性屏蔽码为mask & 0777。并返回原屏蔽码。
+int sys_umask(int mask)
+{
+    int old = current->umask;
+
+    current->umask = mask & 0777;
+    return (old);
+};
+
+
+#endif
 
