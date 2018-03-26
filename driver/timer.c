@@ -9,17 +9,20 @@ purpose:	时钟中断相关函数定义
 #include "io.h"
 #include "pm.h"
 #include "console.h"
+#include "system.h"
+#include "trap_gate.h"
+#include "sched.h"
+#include "logging.h"
 
+extern int timer_interrupt (void);	// 时钟中断处理程序
 
-void timer_callback(int_cont_t *context)
+void timer_callback()
 {
-	return;
+	printf("this is process %d is running!\n", current->pid);
 }
 
 void init_timer(u32 frequency)
 {
-	register_int_handler(IRQ0, timer_callback);
-
 	// Intel 8253/8254 芯片PIT I/端口地址范围是O40h~43h
 	// 输入频率为， 1193180frequency 即每秒中断次数
 	u32 divisor = 1193180 / frequency;
@@ -37,5 +40,6 @@ void init_timer(u32 frequency)
 	// 分别写入低字节和高字节
 	outb(0x40, low);
 	outb(0x40, hign);
+	logging("init timer is success!\n");
 }
 
