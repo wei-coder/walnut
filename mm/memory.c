@@ -8,6 +8,8 @@
 #include "string.h"
 #include "heap.h"
 #include "sched.h"
+#include "trap_gate.h"
+#include "system.h"
 
 // 内核未建立分页机制前暂存的指针
 multiboot_t *glb_mboot_ptr;
@@ -15,8 +17,6 @@ multiboot_t *glb_mboot_ptr;
 /*使用linux0.11的方案，采用字节数组来标记内存占用*/
 static u8* mem_map = NULL;
 
-/*高端内存的映射表*/
-//static u8* high_map = NULL;
 
 /*记录实际管理的物理页数量*/
 u32 page_count = 0;
@@ -28,15 +28,14 @@ u32 end_addr = 0;
 u32 start_addr = 0;
 
 /*内核全局页目录表*/
-pdt_t* pdt;
+pdt_t* pdt = NULL;
+
 
 #define invalidate() asm volatile("mov %0,%%cr3"::"r" (current->pdt))
 
 // 复制1 页内存（4K 字节）。
 #define copy_page(from,to) \
 asm volatile("cld ; rep ; movsb"::"S" (from),"D" (to),"c" (4096):)
-
-static void page_fault(int_cont_t * context);
 
 void show_mem_map()
 {
@@ -60,7 +59,6 @@ void init_pmm()
 	对页表进行初始化。*/
 	mmap_entry_t* mmap_entry = (mmap_entry_t*)(glb_mboot_ptr->mmap_addr);
 	u32 mmap_length = glb_mboot_ptr->mmap_length;
-	int i = 0;
 
 	while(mmap_length-- )
 	{	
@@ -75,15 +73,25 @@ void init_pmm()
 			int map_size = page_count/PAGE_SIZE;
 			if(page_count%PAGE_SIZE)
 			{
-				map_size++;
+				map_size ++;
 			}
 			/*可分配内存从mem_map结束的地址开始，需要注意页对齐*/
 			start_addr = (u32)kern_end + map_size*PAGE_SIZE;
-			/*内核及mem_map占用的空间标记为USED*/
-			for( ; i<(kern_end- kern_start)/PAGE_SIZE + map_size; i++)
+
+			//预留出内核页目录表的空间。
+			pdt = (pdt_t*)start_addr;
+			start_addr += PAGE_SIZE;
+
+			//预留出线性映射区对应的页表空间, 线性映射区为0xc0000000~0xF8000000,总共896M.
+			start_addr += PTE_COUNT*PAGE_SIZE;
+			
+			/*内核及mem_map以及内核页表占用的空间标记为USED*/
+			int i = 0;
+			for( ; i<(kern_end- kern_start)/PAGE_SIZE + map_size + PTE_COUNT + 1; i++)
 			{
 				mem_map[i] = USED;
 			}
+			printf("there are %d page used, and start_addr is 0x%08x\n",i, start_addr);
 
 			for(; i<page_count; i++)
 			{
@@ -93,17 +101,23 @@ void init_pmm()
 		}
 		mmap_entry++;
 	}
+	logging("init phyisc memory success!\n");
 }
 
 /*此函数根据页的物理地址释放一个物理页*/
 void free_page(u32 addr )
 {
-	//printf("free page: 0x%08X\n", addr);
-	if(start_addr > addr)
+	//将线性地址转化为物理地址，phy_min表示可分配物理内存的最小地址。
+	u32 phy_min = start_addr - PAGE_OFFSET;
+	//phy_start是可管理的物理内存的起始地址，即0x100000以上地址在管理范围内，
+	//低于1M的物理内存不在管理范围内
+	u32 phy_start = NOMAL_MEM_ADDR;
+	
+	if(phy_min > addr)
 	{
 		return;
 	}
-	addr -= start_addr;
+	addr -= phy_start;
 	addr >>= 12;
 
 	if(mem_map[addr]--)
@@ -111,7 +125,7 @@ void free_page(u32 addr )
 		return;
 	};
 
-	mem_map[addr]= FREE;
+	mem_map[addr] = FREE;
 	printf("fault: trying to free free page!\n");
 }
 
@@ -123,10 +137,10 @@ void* alloc_page()
 	int i = 0;
 	for(i = 0; i < page_count; i++)
 	{
-		if(FREE == mem_map[i]) 
+		if(mem_map[i] == FREE) 
 		{
 			ret = NOMAL_MEM_ADDR + i*PAGE_SIZE;
-			mem_map[i] = USED;
+			mem_map[i] ++;
 			return (void *)ret;
 		}
 	}
@@ -155,28 +169,44 @@ void un_wp_page(u32 * table_entry)
 	u32 old_page,new_page;
 
 	old_page = 0xfffff000 & *table_entry;
-	if (old_page >= NOMAL_MEM_ADDR && mem_map[MAP_INDEX(old_page)]==USED)
+	old_page  += PAGE_OFFSET;
+	if (old_page >= start_addr && mem_map[MAP_INDEX(old_page)]==1)
 	{
+		//如果页表项已经存在，则修改可写权限即可
 		*table_entry |= 2;
 		invalidate();
 		return;
 	}
+
+	///如果该页的地址小于0x100000，或者该页尚未被使用
+	//则申请一个物理页，并修改对应表项
 	new_page = (u32)alloc_page();
 	if (!new_page)
 	{
 		printf("there is no free page;\n");
 	}
-	if (old_page >= NOMAL_MEM_ADDR)
+// 如果原页面大于内存低端（则意味着mem_map[]>1，页面是共享的），则将原页面的页面映射
+// 数组值递减1。然后将指定页表项内容更新为新页面的地址，并置可读写等标志(U/S, R/W, P)。
+// 刷新页变换高速缓冲。最后将原页面内容复制到新页面。    
+	if (old_page >= start_addr)
+	{
 		mem_map[MAP_INDEX(old_page)]--;
+	}
+	new_page += PAGE_OFFSET;
+	copy_page(old_page,new_page);
+
+	new_page -= PAGE_OFFSET;
 	*table_entry = new_page | 7;
 	invalidate();
-	copy_page(old_page,new_page);
 }
 
 /*写保护异常处理函数*/
 void do_wp_page(u32 error_code,u32 address)
 {
-	un_wp_page((u32 *)(((pdt[PDT_INDEX(address)]) & 0xffc) + (0xfffff000 &	*((u32 *) ((address>>20) &0xffc)))));
+	pdt_t* tmp_pdt = (pdt_t*)((u32)current->pdt + PAGE_OFFSET);
+	pte_t* pte = (pte_t*)(tmp_pdt[PDT_INDEX(address)]);
+	pte = (pte_t*)(((u32)pte & 0xFFFFF000) + PTE_INDEX(address) * 4 + PAGE_OFFSET);
+	un_wp_page(pte);
 }
 
 void * get_virt_page()
@@ -196,94 +226,33 @@ void free_virt_page(u32 p)
 
 #endif
 
-void page_fault(int_cont_t * context)
-{
-	u32 cr2;
-	asm volatile ("mov %%cr2, %0" : "=r" (cr2));
-
-	printf("Page fault at 0x%08x, virtual faulting address 0x%08x\n", context->eip,cr2);
-	printf("Error code: %x\n", context->err_code);
-
-	if ( !(context->err_code & 0x1))
-	{
-		show_string_color("Because the page wasn't present.\n", black, red);
-		do_no_page(context->err_code, cr2);
-	}
-
-	if (context->err_code & 0x2) 
-	{
-		show_string_color("Write error.\n", black, red);
-		do_wp_page(context->err_code, cr2);
-	}
-	else
-	{
-		show_string_color( "Read error.\n", black, red);
-	}
-
-	if (context->err_code & 0x4)
-	{
-		show_string_color("In user mode.\n", black, red);
-	}
-	else
-	{
-		show_string_color("In kernel mode.\n", black, red);
-	}
-
-	if (context->err_code & 0x8)
-	{
-		show_string_color("Reserved bits being overwritten.\n", black, red);
-	}
-
-	if (context->err_code & 0x10)
-	{
-		show_string_color("The fault occurred during an instruction fetch.\n", black, red);
-	}
-
-	//panic("page fault stack:\n");
-	
-	while (1);
-};
-
-
 void init_vmm()
 {
-	int i = 0;
-	pte_t* pte = NULL;
-
-	/*给pdt申请物理页面*/
-	pdt = alloc_page() + PAGE_OFFSET;
-	if((u32)pdt == PAGE_OFFSET)
-	{
-		printf("alloc page fault!\n");
-		return;
-	}
-
+	pte_t* pte = (pte_t*)((u32)pdt+PAGE_SIZE);
 	/*将高端内存以下的物理页映射到线性空间*/
-	u32 kern_page_count = HIGH_MEM_ADDR/PAGE_SIZE;
-	int pte_cont = page_count/PTE_LEN;
-	if(page_count%PTE_LEN)
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	for(i=KERN_PDT_INDEX; i < KERN_PDT_INDEX + PTE_COUNT; i++)
 	{
-		pte_cont++;
+		/*pte紧随PDT放置*/
+		pdt[i] = ((u32)pte - PAGE_OFFSET) | PDT_FLAG;
+
+		/*将内核空间映射到0xC000 0000 ~0xF800 0000*/
+		for(j = 0; j<PTE_LEN; j++)
+		{
+			/*将物理地址0x0~0x38000000映射到0xC000 0000 ~0xF800 0000*/
+			pte[j] =  (k << 12) | PAGE_FLAG;
+			k++;
+		}
+		pte = (pte_t*)((u32)pte + PAGE_SIZE);
 	}
 
-	for(i=PDT_INDEX(PAGE_OFFSET); i < PDT_INDEX(PAGE_OFFSET) + pte_cont; i++)
-	{
-		pte = alloc_page();
-		/*将内核空间映射到0xC000 0000 ~0xFFFF FFFF*/
-		pdt[i] = (u32)pte | PDT_FLAG;
-	}
-	
-	pte = (pte_t*)((u32)pdt + PAGE_SIZE);
-	for(i = 1; i<kern_page_count; i++)
-	{
-		/*将物理地址0x0~0x38000000映射到0xC000 0000 ~0xF800 0000*/
-		pte[i] =  (i << 12) | PAGE_FLAG;
-	}
-
-	register_int_handler(14, &page_fault);
+	set_trap_gate(14,&page_fault);
 	
 	u32 pdt_phy_addr = (u32)pdt - PAGE_OFFSET;
 	asm volatile ("mov %0,%%cr3" : : "r" (pdt_phy_addr));
+	logging("init virtual memory success!\n");
 };
 
 void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
@@ -358,39 +327,56 @@ u32 get_mapping(pdt_t *pdt_now, u32 va, u32 *pa)
 	return 0;
 }
 
-int copy_page_tables (u32* from, u32* to)
+int copy_page_tables (u32* from_pdt, u32* to_pdt)
 {
-	pte_t* pte = NULL;
-	u32 from_page = 0;
-	u32 to_page = 0;
+	u32* from_pte = NULL;
+	u32* to_pte = NULL;
+	u32 this_page = 0;
 	
-	if((NULL == from) ||(NULL == to))
+	if((NULL == from_pdt) ||(NULL == to_pdt))
 	{
 		return FALSE;
 	}
 
 	//先复制PDT表以及PTE表
 	int i = 0;
-	for(; i < PDT_LEN; i++)
+	int j = 0;
+	for(i = 0; i < PDT_LEN; i++)
 	{
-		if(from[i] & 0x01)
+		if(from_pdt[i] & 1)
 		{
-			pte = alloc_page();
-			//copy父进程的page flag
-			to[i] = (u32)pte | (from[i] & FLAG_MASK);
-			from_page = (from[i]+PAGE_OFFSET)&PAGE_MASK;
-			to_page = (to[i]+PAGE_OFFSET)&PAGE_MASK;
-			copy_page(from_page, to_page);
+			to_pte = alloc_page();
+			//copy父进程页表
+			to_pdt[i] = (u32)to_pte | PAGE_FLAG;
+			from_pte = (u32*)((from_pdt[i]&PAGE_MASK)+PAGE_OFFSET);
+			to_pte = (u32*)((u32)to_pte + PAGE_OFFSET);
+			for(j=0; j<PTE_LEN; j++)
+			{
+				this_page = from_pte[j];
+				if(this_page & 1)
+				{
+					if(this_page > NOMAL_MEM_ADDR)
+					{
+						this_page &= ~2;
+					}
+					to_pte[j] = this_page;
+					if(from_pte[j] > start_addr)
+					{
+						from_pte[j] = this_page;
+						mem_map[MAP_INDEX(this_page)]++;
+					}
+				}
+			}
 		}
 	}
 
 	invalidate();
-	return 0;
+	return true;
 }
 
 int free_page_tables(u32 pdt_addr)
 {
-	u32* proc_pdt = (u32*)pdt_addr;
+	u32* proc_pdt = (u32*)(pdt_addr + PAGE_OFFSET);
 
 	if(NULL == proc_pdt) 
 	{
