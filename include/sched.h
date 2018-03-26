@@ -6,6 +6,10 @@ purpose:	进程调度相关的数据定义
 */
 #if 1
 
+#ifndef __SCHED_H
+#define __SCHED_H
+
+#include "types.h"
 #include "task.h"
 #include "memory.h"
 #include "pm.h"
@@ -26,19 +30,12 @@ union task_union
 	char stack[PAGE_SIZE];		// 从堆栈段寄存器ss 可以获得其数据段选择符。
 };
 
-// 该结构用于设置堆栈ss:esp（数据段选择符，指针），见head.s，第23 行。
-typedef struct STACK_T
-{
-  long *a;
-  short b;
-}stack_t;
-
 extern struct task_struct *task[NR_TASKS];
 extern struct task_struct *last_task_used_math;
 extern struct task_struct *current;
 extern long volatile jiffies;
 extern long startup_time;
-extern u32* pdt;
+extern pdt_t* pdt;
 
 // 第一个任务结构的定义
 #define INIT_TASK \
@@ -47,6 +44,7 @@ extern u32* pdt;
 	15,\
 	15,\
 	0,\
+	{{},},\
 	0,\
 	0,\
 	0,\
@@ -78,35 +76,40 @@ extern u32* pdt;
 	NULL,\
 	NULL,\
 	0,\
-	pdt\
-	{\
-		0,\
-		PAGE_SIZE + (long) (&init_task),\
-		_SELECTOR_KER_DS,\
-		0,\
-		0,\
-		0,\
-		0,\
-		(long) pdt-PAGE_OFFSET,\
-		0,\
-		0,\
-		0,\
-		0,\
-		0,\
-		0,\
-		0,\
-		0,\
-		0,\
-		0,\
-		_SELECTOR_USER_DS,\
-		_SELECTOR_USER_CS,\
-		_SELECTOR_USER_DS,\
-		_SELECTOR_USER_DS,\
-		_SELECTOR_USER_DS,\
-		_SELECTOR_USER_DS,\
-		_SELECTOR_LDT,\
-		0x80000000,\
-		},\
+	0,\
+	0,\
+	PAGE_SIZE+(long)&init_task,\
+	0,\
+}
+
+#define INIT_TSS \
+{\
+	0,\
+	PAGE_SIZE+(long)&init_task,\
+	_SELECTOR_KER_DS,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	0,\
+	_SELECTOR_USER_DS,\
+	_SELECTOR_USER_CS,\
+	_SELECTOR_USER_DS,\
+	_SELECTOR_USER_DS,\
+	_SELECTOR_USER_DS,\
+	_SELECTOR_USER_DS,\
+	_SELECTOR_LDT,\
+	0x80000000,\
 }
 
 #define FIRST_TASK	task[0]				// 任务0 比较特殊，所以特意给它单独定义一个符号。
@@ -114,21 +117,28 @@ extern u32* pdt;
 
 #define FIRST_TSS_ENTRY	GDT_INDEX_TSS
 
+typedef int (*fn_ptr)();
 
 //需要更新ESP0才可以跳转，否则跳转失败
-extern inline void switch_to(int n) 
-{
-	struct {long a,b;} __tmp; 
-	asm volatile("cmpl %%ecx,%2\n\t" \
-	        "je 1f\n\t" \
-	        "movw %%dx,%1\n\t" \
-	        "xchgl %%ecx,%2\n\t" \
-	        "ljmp %0\n\t" \
-	        "1:" \
-	        ::"m" (*&__tmp.a),"m" (*&__tmp.b), "m"(current),\
-	        "d" (_SELECTOR_TSS),"c" ((long) task[n])); \
+//新任务的页表切换
+//新任务的ESP需要在切换前刷新。
+#define switch_to(n) \
+{\
+	asm volatile("cmpl %%ecx, current\n\t" \
+		"je 1f\n\t" \
+		"xchgl %%ecx, current\n\t" \
+		"movl %%esp, %1\n\t"\
+		"movl %%eax, %0\n\t"\
+		"movl %%ebx, %%esp\n\t"\
+		"movl %2, %%edx\n\t"\
+		"movl %%edx,%%cr3\n\t" \
+		"1:" \
+		::"m"(tss.esp0),"m"(current->esp),"m"(task[n]->pdt),"a"(task[n]->esp0), "b"(task[n]->esp),"c" ((long) task[n])); \
 }
 
 void schedule (void);
+void sched_init(void);
+
+#endif
 #endif
 

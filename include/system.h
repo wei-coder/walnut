@@ -5,6 +5,9 @@ date:		2018-1
 purpose:	定义了进入用户模式及设置用户进程相关的宏及数据
 */
 
+#ifndef __SYSTEM_H
+#define __SYSTEM_H
+
 #include "pm.h"
 
 //// 切换到用户模式运行。
@@ -40,3 +43,26 @@ asm volatile ("movl %%esp,%%eax\n\t" \
 #define nop() asm volatile ("nop"::);// 空操作。
 
 #define iret() asm volatile ("retd");// 中断返回。
+
+#define _set_gate(gate_addr,type,dpl,addr) \
+asm volatile ("movw %%dx,%%ax\n\t" \
+    "movw %0,%%dx\n\t" \
+    "movl %%eax,%1\n\t" \
+    "movl %%edx,%2" \
+    : \
+    : "i" ((short) (0x8000+(dpl<<13)+(type<<8))), \
+    "o" (*((char *) (gate_addr))), \
+    "o" (*(4+(char *) (gate_addr))), \
+    "d" ((char *) (addr)),"a" (0x00600000))
+
+#define set_intr_gate(n,addr) \
+    _set_gate(&idt_entry[n],14,0,addr)
+
+#define set_trap_gate(n,addr) \
+    _set_gate(&idt_entry[n],15,0,addr)
+
+#define set_system_gate(n,addr) \
+    _set_gate(&idt_entry[n],15,3,addr)
+
+
+#endif

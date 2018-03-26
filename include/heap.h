@@ -5,7 +5,11 @@ date:		2017-12
 purpose:	堆内存管理的相关函数声明和变量定义
 */
 
+#ifndef __HEAP_H
+#define __HEAP_H
+
 #include "types.h"
+#include "memory.h"
 
 // 堆起始地址
 #define HEAP_START 0xE0000000
@@ -33,6 +37,8 @@ typedef struct header {
 	u32 length : 31; 	// 当前内存块的长度
 } header_t;
 
+extern pdt_t* pdt;
+
 // 初始化堆
 void init_heap();
 
@@ -45,3 +51,4 @@ void kfree(void *p);
 // 测试内核堆申请释放
 void test_heap();
 
+#endif
