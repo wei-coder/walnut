@@ -8,20 +8,20 @@ purpose:	系统进入保护模式所需要的各项工作
 #include "io.h"
 #include "string.h"
 #include "console.h"
+#include "system.h"
+#include "trap_gate.h"
+#include "logging.h"
 
 /*全局描述符表的定义*/
 desc_t gdt_entry[GDT_ENTRY_LEN] = {0};
 
-/*中断处理函数表的定义*/
-int_handler_ptr isr_entry[IDT_ENTRY_LEN] = {0};
-
 /*中断描述符表的定义及初始化*/
-static gate_desc_t idt_entry[IDT_ENTRY_LEN] = {0};
+gate_desc_t idt_entry[IDT_ENTRY_LEN] = {0};
 
 void gdt_set_gate(u8 num, u16 flags, u32 base, u32 limit)
 {
 	gdt_entry[num].desc_low = ((limit) & 0xffff) | (((base) & 0xffff) << 16);
-	gdt_entry[num].desc_high = ((base) & 0xff)| (((flags) & 0xf0ff) << 8) | \
+	gdt_entry[num].desc_high = (((base) & 0x00ff0000) >> 16)| (((flags) & 0xf0ff) << 8) | \
 			((limit) & 0xf0000) | ((base) & 0xff000000);
 };
 
@@ -44,6 +44,7 @@ void init_gdt()
 	gdt_set_gate(GDT_INDEX_LDT, LDT_FLAG, LDT_BASE, LDT_LIMIT);
 	
 	gdt_loader((u32)&gdtr_reg);
+	logging("init GDT success!\n");
 };
 
 void idt_set_gate(u8 num, u32 base, u16 selector, u8 flags)
@@ -60,9 +61,6 @@ void idt_set_gate(u8 num, u32 base, u16 selector, u8 flags)
 /*中断描述符表的初始化*/
 void init_idt()
 {
-
-	memset(isr_entry, 0, 4*IDT_ENTRY_LEN);
-	memset(idt_entry, 0, 8*IDT_ENTRY_LEN);
 
 	// 重新映射 IRQ 表
 	// 两片级联的 Intel 8259A 芯片
@@ -100,103 +98,36 @@ void init_idt()
 	idtr_reg.base = (u32)&idt_entry;
 	
 	/*中断描述符表的定义及初始化*/
-	idt_set_gate(0,(u32)isr0, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(1,(u32)isr1, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(2,(u32)isr2, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(3,(u32)isr3, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(4,(u32)isr4, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(5,(u32)isr5, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(6,(u32)isr6, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(7,(u32)isr7, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(8,(u32)isr8, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(9,(u32)isr9, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(10,(u32)isr10, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(11,(u32)isr11, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(12,(u32)isr12, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(13,(u32)isr13, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(14,(u32)isr14, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(15,(u32)isr15, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(16,(u32)isr16, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(17,(u32)isr17, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(18,(u32)isr18, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(19,(u32)isr19, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(20,(u32)isr20, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(21,(u32)isr21, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(22,(u32)isr22, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(23,(u32)isr23, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(24,(u32)isr24, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(25,(u32)isr25, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(26,(u32)isr26, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(27,(u32)isr27, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(28,(u32)isr28, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(29,(u32)isr29, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(30,(u32)isr30, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(31,(u32)isr31, _SELECTOR_KER_CS, 0x8E);
+	int i;
 
-	idt_set_gate(32,(u32)irq0, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(33,(u32)irq1, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(34,(u32)irq2, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(35,(u32)irq3, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(36,(u32)irq4, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(37,(u32)irq5, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(38,(u32)irq6, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(39,(u32)irq7, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(40,(u32)irq8, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(41,(u32)irq9, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(42,(u32)irq10, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(43,(u32)irq11, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(44,(u32)irq12, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(45,(u32)irq13, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(46,(u32)irq14, _SELECTOR_KER_CS, 0x8E);
-	idt_set_gate(47,(u32)irq15, _SELECTOR_KER_CS, 0x8E);
+	set_trap_gate(0,&divide_error);
+	set_trap_gate(1,&debug);
+	set_trap_gate(2,&nmi);
+	set_system_gate(3,&int3);   /* int3-5 can be called from all */
+	set_system_gate(4,&overflow);
+	set_system_gate(5,&bounds);
+	set_trap_gate(6,&invalid_op);
+	set_trap_gate(7,&device_not_available);
+	set_trap_gate(8,&double_fault);
+	set_trap_gate(9,&coprocessor_segment_overrun);
+	set_trap_gate(10,&invalid_TSS);
+	set_trap_gate(11,&segment_not_present);
+	set_trap_gate(12,&stack_segment);
+	set_trap_gate(13,&general_protection);
+	set_trap_gate(14,&page_fault);
+	set_trap_gate(15,&reserved);
+	set_trap_gate(16,&coprocessor_error);
+	// 下面将int17-48 的陷阱门先均设置为reserved，以后每个硬件初始化时会重新设置自己的陷阱门。
+	for (i=17;i<48;i++)
+	{
+		set_trap_gate(i,&reserved);
+	}
 
-	idt_set_gate(255,(u32)isr255, _SELECTOR_KER_CS, 0x8E);
+	set_trap_gate(45,&irq13);               // 设置协处理器的陷阱门。
+	outb_p(inb_p(0x21)&0xfb,0x21);          // 允许主8259A 芯片的IRQ2 中断请求。
+	outb_p(inb_p(0xA1)&0xdf,0xA1);            // 允许从8259A 芯片的IRQ13 中断请求。
+	set_trap_gate(39,&parallel_interrupt);  // 设置并行口的陷阱门。
+
 
 	asm volatile("lidtl %0" : : "m" (idtr_reg));
 };
-
-/*注册一个中断处理函数*/
-void register_int_handler(u8 num, int_handler_ptr func)
-{
-	isr_entry[num] = func;
-};
-
-/*调用中断处理函数*/
-void isr_handler(int_cont_t * context)
-{
-	if (isr_entry[context->int_no])
-	{
-		isr_entry[context->int_no](context);
-	}
-	else
-	{
-		printf("there is no this ISR: %d handle!\n", context->int_no);
-	}
-};
-
-/*IRQ 处理函数*/
-void irq_handler(int_cont_t *context)
-{
-	// 发送中断结束信号给 PICs
-	// 按照我们的设置，从 32 号中断起为用户自定义中断
-	// 因为单片的 Intel 8259A 芯片只能处理 8 级中断
-	// 故大于等于 40 的中断号是由从片处理的
-	if (context->int_no >= 40)
-	{
-		// 发送重设信号给从片
-		outb(0xA0, 0x20);
-	}
-
-	// 发送重设信号给主片
-	outb(0x20, 0x20);
-
-	if (isr_entry[context->int_no])
-	{
-		isr_entry[context->int_no](context);
-	}
-	else
-	{
-		printf("there is no this interrupt: %d handle!\n", context->int_no);
-	}
-};
-

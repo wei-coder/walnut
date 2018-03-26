@@ -26,9 +26,9 @@ RES              equ	0x14
 RDS              equ	0x18
 REIP             equ	0x1C
 RCS              equ	0x20
-EFLAGS          equ	0x24
-OLDESP          equ	0x28  ;当有特权级变化时。
-OLDSS           equ	0x2C
+EFLAGS           equ	0x24
+OLDESP           equ	0x28  ;当有特权级变化时。
+OLDSS            equ	0x2C
 
 ;以下这些是任务结构(task_struct)中变量的偏移值，参见include/linux/sched.h
 state		equ	0             ; these are offsets into the task-struct.# 进程状态码
@@ -95,6 +95,7 @@ system_call:
 	cmp dword [eax+counter],0           ; counter
 	je reschedule
 ; 以下这段代码执行从系统调用C 函数返回后，对信号量进行识别处理。
+[GLOBAL ret_from_sys_call]
 ret_from_sys_call:
 ; 首先判别当前任务是否是初始任务task0，如果是则不必对其进行信号量方面的处理，直接返回。
 ; _task 对应C 程序中的task[]数组，直接引用task 相当于引用task[0]。
@@ -261,8 +262,8 @@ sys_fork:
 	push edi
 	push ebp
 	push eax
-	call copy_process              ; 调用C 函数copy_process()(kernel/fork.c)
-	add esp,20                   ; 丢弃这里所有压栈内容。
+	call copy_process		; 调用C 函数copy_process()(kernel/fork.c)
+	add esp,20                   	; 丢弃这里所有压栈内容。
 .1:
 	ret
 

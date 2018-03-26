@@ -18,7 +18,7 @@ purpose:	fork进程的相关函数实现
 
 long last_pid=0;
 
-
+extern void ret_from_sys_call(void);
 inline _syscall0(int,fork)
 
 
@@ -48,17 +48,17 @@ void verify_area (void *addr, int size)
 // nr 为新任务号；p 是新任务数据结构的指针。
 int copy_mem(int nr,struct task_struct * proc, struct task_struct * f_proc)
 {
-	proc->pdt = alloc_page();
-	if(NULL != proc->pdt)
+	proc->pdt = (u32)alloc_page();
+	if(0 != proc->pdt)
 	{
-		memset(proc->pdt+PAGE_OFFSET, 0, PAGE_SIZE);
+		memset((void*)(proc->pdt+PAGE_OFFSET), 0, PAGE_SIZE);
 	}
 	
-	if (copy_page_tables(f_proc->pdt, proc->pdt)) 
+	if(copy_page_tables((u32*)(f_proc->pdt + PAGE_OFFSET), (u32*)(proc->pdt + PAGE_OFFSET)) )
 	{
 		return TRUE;
 	}
-	free_page_tables((u32)proc->pdt);
+	free_page_tables(proc->pdt);
 	return -ENOMEM;
 
 }
@@ -75,6 +75,7 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 				  long eip, long cs, long eflags, long esp, long ss)
 {
 	struct task_struct *p = NULL;
+	u32* kern_stack = NULL;
 
 	p = (struct task_struct *)get_virt_page();	// 为新任务数据结构分配内存。
 	if (!p)			// 如果内存分配出错，则返回出错码并退出。
@@ -82,7 +83,7 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 	task[nr] = p;			// 将新任务结构指针放入任务数组中。
 // 其中nr 为任务号，由前面find_empty_process()返回。
 	*p = *current;		/* NOTE! this doesn't copy the supervisor stack */
-/* 注意！这样做不会复制超级用户的堆栈 （只复制当前进程内容）。*/ 
+/* 注意！这样做不会复制内核堆栈 （只复制当前进程内容）。*/ 
 	p->state = TASK_UNINTERRUPTIBLE;	// 将新进程的状态先置为不可中断等待状态。
 	p->pid = last_pid;		// 新进程号。由前面调用find_empty_process()得到。
 	p->father = current->pid;	// 设置父进程号。
@@ -94,11 +95,37 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 	p->utime = p->stime = 0;	// 初始化用户态时间和核心态时间。
 	p->cutime = p->cstime = 0;	// 初始化子进程用户态和核心态时间。
 	p->start_time = jiffies;	// 当前滴答数时间。
+	p->esp0 = (long)p + PAGE_SIZE;
+	p->eip = eip;
+
+
+	kern_stack = (u32*)((long)p + PAGE_SIZE);
+	*(--kern_stack) = ss&0xFFFF;
+	*(--kern_stack) = esp;
+	*(--kern_stack) = eflags;
+	*(--kern_stack) = cs&0xFFFF;
+	*(--kern_stack) = eip;
+	*(--kern_stack) = ds&0xFFFF;
+	*(--kern_stack) = es&0xFFFF;
+	*(--kern_stack) = fs&0xFFFF;
+	*(--kern_stack) = edx;
+	*(--kern_stack) = ecx;
+	*(--kern_stack) = ebx;
+	*(--kern_stack) = 0;
+	*(--kern_stack) = (u32)ret_from_sys_call;
+	*(--kern_stack) = ebp;
+	*(--kern_stack) = esi;
+	*(--kern_stack) = ebx;
+	kern_stack -= 4;
+	p->esp = (long)kern_stack;
+
+
+	#if 0
 // 以下设置任务状态段TSS 所需的数据（参见列表后说明）。
 	p->tss.back_link = 0;
 	p->tss.esp0 = PAGE_SIZE + (long) p;	// 堆栈指针（由于是给任务结构p 分配了1 页
 // 新内存，所以此时esp0 正好指向该页顶端）。
-	p->tss.ss0 = 0x10;		// 堆栈段选择符（内核数据段）[??]。
+	p->tss.ss0 = _SELECTOR_KER_DS;		// 堆栈段选择符（内核数据段）[??]。
 	p->tss.eip = eip;		// 指令代码指针。
 	p->tss.eflags = eflags;	// 标志寄存器。
 	p->tss.eax = 0;
@@ -117,11 +144,12 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 	p->tss.gs = gs & 0xffff;
 	p->tss.ldt = _SELECTOR_LDT;	// 该新任务nr 的局部描述符表选择符（LDT 的描述符在GDT 中）。
 	p->tss.io_bitmap = 0x80000000;
-
+	#endif
+	
 // 设置新任务的代码和数据段基址、限长并复制页表。如果出错（返回值不是0），则复位任务数组中
 // 相应项并释放为该新任务分配的内存页。
 	if (FALSE == copy_mem(nr, p, current))
-	{				// 返回不为0 表示出错。
+	{				// 返回为0 表示出错。
 		task[nr] = NULL;
 		free_virt_page ((u32) p);
 		return -EAGAIN;

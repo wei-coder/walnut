@@ -32,122 +32,126 @@ register unsigned short __res; \
 __asm__("mov %%fs,%%ax":"=a" (__res):); \
 __res;})
 
-int do_exit(long code);                 // 程序退出处理。(kernel/exit.c)
+//int do_exit(long code);                 // 程序退出处理。(kernel/exit.c)
 
-// 该子程序用来打印出错中断的名称、出错号、调用程序的EIP、EFLAGS、ESP、fs 段寄存器值、
-// 段的基址、段的长度、进程号pid、任务号、10 字节指令码。如果堆栈在用户数据段，则还
-// 打印16 字节的堆栈内容。
 static void die(char * str,long esp_ptr,long nr)
 {
 	long * esp = (long *) esp_ptr;
 	int i;
 
 	printf("%s: %04x\n\r",str,nr&0xffff);
-	printf("EIP:\t%04x:%p\nEFLAGS:\t%p\nESP:\t%04x:%p\n", esp[1],esp[0],esp[2],esp[4],esp[3]);
+	printf("EIP:\t%04x:%p\nEFLAGS:\t%p\nESP:\t%04x:%p\n",esp[1],esp[0],esp[2],esp[4],esp[3]);
 	printf("fs: %04x\n",_fs());
-	//printf("base: %p, limit: %p\n",get_base(current->ldt[1]),get_limit(0x17));
-	if (esp[4] == 0x17)
+	if (esp[4] == _SELECTOR_USER_DS)
 	{
 		printf("Stack: ");
 		for (i=0;i<4;i++)
-		printf("%p ",get_seg_long(0x17,i+(long *)esp[3]));
+			printf("%p ",get_seg_long(_SELECTOR_USER_DS,i+(long *)esp[3]));
 		printf("\n");
 	}
-	//str(i);
+	//str(i);		//保存TR寄存器
 	printf("Pid: %d, process nr: %d\n\r",current->pid,0xffff & i);
 	for(i=0;i<10;i++)
-	{
 		printf("%02x ",0xff & get_seg_byte(esp[1],(i+(char *)esp[0])));
-	}
 	printf("\n\r");
-	do_exit(11);        /* play segment exception */
+	//do_exit(11);        /* play segment exception */
 }
 
-void do_double_fault(int_cont_t * context)
+void do_double_fault(long esp, long error_code)
 {
-    die("double fault",context->esp,context->err_code);
+    die("double fault",esp,error_code);
 }
 
-void do_general_protection(int_cont_t * context)
+void do_general_protection(long esp, long error_code)
 {
-    die("general protection",context->esp,context->err_code);
+    die("general protection",esp,error_code);
 }
 
-void do_divide_error(int_cont_t * context)
+void do_divide_error(long esp, long error_code)
 {
-    die("divide error",context->esp,context->err_code);
+    die("divide error",esp,error_code);
 }
 
-void do_int3(int_cont_t * context)
+void do_int3(long * esp, long error_code,
+		long fs,long es,long ds,
+		long ebp,long esi,long edi,
+		long edx,long ecx,long ebx,long eax)
 {
-    printf("eax\t\tebx\t\tecx\t\tedx\n\r%8x\t%8x\t%8x\t%8x\n\r", context->eax,context->ebx,context->ecx,context->edx);
-    printf("esi\t\tedi\t\tebp\t\tesp\n\r%8x\t%8x\t%8x\t%8x\n\r",  context->esi,context->edi,context->ebp, context->esp);
-    printf("\n\rds\n\r%4x\n\r",  context->ds);
-    printf("EIP: %8x   CS: %4x  EFLAGS: %8x\n\r",context->eip,context->cs,context->eflags);
+    int tr;
+
+    __asm__("str %%ax":"=a" (tr):"0" (0));
+    printf("eax\t\tebx\t\tecx\t\tedx\n\r%8x\t%8x\t%8x\t%8x\n\r",
+        eax,ebx,ecx,edx);
+    printf("esi\t\tedi\t\tebp\t\tesp\n\r%8x\t%8x\t%8x\t%8x\n\r",
+        esi,edi,ebp,(long) esp);
+    printf("\n\rds\tes\tfs\ttr\n\r%4x\t%4x\t%4x\t%4x\n\r",
+        ds,es,fs,tr);
+    printf("EIP: %8x   CS: %4x  EFLAGS: %8x\n\r",esp[0],esp[1],esp[2]);
 }
 
-void do_nmi(int_cont_t * context)
+void do_nmi(long esp, long error_code)
 {
-    die("nmi",context->esp,context->err_code);
+    die("nmi",esp,error_code);
 }
 
-void do_debug(int_cont_t * context)
+void do_debug(long esp, long error_code)
 {
-    die("debug",context->esp,context->err_code);
+    die("debug",esp,error_code);
 }
 
-void do_overflow(int_cont_t * context)
+void do_overflow(long esp, long error_code)
 {
-    die("overflow",context->esp,context->err_code);
+    die("overflow",esp,error_code);
 }
 
-void do_bounds(int_cont_t * context)
+void do_bounds(long esp, long error_code)
 {
-    die("bounds",context->esp,context->err_code);
+    die("bounds",esp,error_code);
 }
 
-void do_invalid_op(int_cont_t * context)
+void do_invalid_op(long esp, long error_code)
 {
-    die("invalid operand",context->esp,context->err_code);
+    die("invalid operand",esp,error_code);
 }
 
-void do_device_not_available(int_cont_t * context)
+void do_device_not_available(long esp, long error_code)
 {
-    die("device not available",context->esp,context->err_code);
+    die("device not available",esp,error_code);
 }
 
-void do_coprocessor_segment_overrun(int_cont_t * context)
+void do_coprocessor_segment_overrun(long esp, long error_code)
 {
-    die("coprocessor segment overrun",context->esp,context->err_code);
+    die("coprocessor segment overrun",esp,error_code);
 }
 
-void do_invalid_TSS(int_cont_t * context)
+void do_invalid_TSS(long esp,long error_code)
 {
-    die("invalid TSS",context->esp,context->err_code);
+    die("invalid TSS",esp,error_code);
 }
 
-void do_segment_not_present(int_cont_t * context)
+void do_segment_not_present(long esp,long error_code)
 {
-    die("segment not present",context->esp,context->err_code);
+    die("segment not present",esp,error_code);
 }
 
-void do_stack_segment(int_cont_t * context)
+void do_stack_segment(long esp,long error_code)
 {
-    die("stack segment",context->esp,context->err_code);
+    die("stack segment",esp,error_code);
 }
 
-void do_coprocessor_error(int_cont_t * context)
+void do_coprocessor_error(long esp, long error_code)
 {
     if (last_task_used_math != current)
         return;
-    die("coprocessor error",context->esp,context->err_code);
+    die("coprocessor error",esp,error_code);
 }
 
-void do_reserved(int_cont_t * context)
+void do_reserved(long esp, long error_code)
 {
-    die("reserved (15,17-47) error",context->esp,context->err_code);
+    die("reserved (15,17-47) error",esp,error_code);
 }
 
+#if 0
 // 下面是异常（陷阱）中断程序初始化子程序。设置它们的中断调用门（中断向量）。
 // set_trap_gate()与set_system_gate()的主要区别在于前者设置的特权级为0，后者是3。因此
 // 断点陷阱中断int3、溢出中断overflow 和边界出错中断bounds 可以由任何程序产生。
@@ -184,4 +188,4 @@ void trap_init(void)
     outb(inb_p(0xA1)&0xdf,0xA1);            // 允许从8259A 芯片的IRQ13 中断请求。
     //register_int_handler(39,&do_parallel_interrupt);  // 设置并行口的陷阱门。
 }
-
+#endif

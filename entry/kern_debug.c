@@ -9,6 +9,7 @@ purpose:	内核调试功能的相关函数定义
 #include "console.h"
 #include "memory.h"
 #include "multiboot.h"
+#include "logging.h"
 
 static elf_t kernel_elf;
 extern multiboot_t *glb_mboot_ptr;
@@ -23,11 +24,13 @@ elf_t elf_from_multiboot(multiboot_t *mb)
 	for (i = 0; i < mb->num; i++)
 	{
 		const char *name = (const char *)(shstrtab + sh[i].name) + PAGE_OFFSET;
-		if (strcmp(name, ".strtab") == 0) {
+		if (strcmp(name, ".strtab") == 0)
+		{
 			elf.strtab = (const char *)sh[i].addr + PAGE_OFFSET;
 			elf.strtabsz = sh[i].size;
 		}
-		if (strcmp(name, ".symtab") == 0) {
+		if (strcmp(name, ".symtab") == 0)
+		{
 			elf.symtab = (elf_symbol_t *)(sh[i].addr + PAGE_OFFSET);
 			elf.symtabsz = sh[i].size;
 		}
@@ -39,6 +42,7 @@ elf_t elf_from_multiboot(multiboot_t *mb)
 void init_debug()
 {
 	kernel_elf = elf_from_multiboot(glb_mboot_ptr);
+	logging("init debug success!\n");
 }
 
 const char *elf_lookup_symbol(u32 addr, elf_t *elf)
@@ -86,8 +90,6 @@ void panic(const char *msg)
 	printf("*** System panic: %s\n", msg);
 	print_stack_trace();
 	printf("***\n");
-	
-	//while(1);
 }
 
 void print_stack_trace()
