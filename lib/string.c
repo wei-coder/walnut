@@ -5,8 +5,8 @@ date:	2017-12
 purpose:	字符串及内存操作相关的基础函数
 */
 
-#include "types.h"
 #include "string.h"
+#include "types.h"
 
 int memcmp(const void *s1, const void *s2, size_t len)
 {

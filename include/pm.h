@@ -55,6 +55,46 @@ purpose:	保护模式相关数据类型及函数声明
 
 
 
+
+#define	ISR_DIV_ZERO		0	// 0 #DE 除 0 异常 
+#define	ISR_DEBUG_ERR		1	// 1 #DB 调试异常 
+#define	ISR_NMI				2	// 2 NMI 
+#define	ISR_BP				3	// 3 BP 断点异常 
+#define	ISR_OF				4	// 4 #OF 溢出 
+#define	ISR_ARR_OVER		5	// 5 #BR 对数组的引用超出边界 
+#define	ISR_ERR_CODE		6	// 6 #UD 无效或未定义的操作码 
+#define	ISR_NM_INVALID		7	// 7 #NM 设备不可用(无数学协处理器) 
+#define	ISR_DOUB_FAULT	8	// 8 #DF 双重故障(有错误代码) 
+#define	ISR_COPROCESS_ERR  9	// 9 协处理器跨段操作 
+#define 	ISR_TSS_INVALID	10	// 10 #TS 无效TSS(有错误代码) 
+#define 	ISR_NP_NOT_EXSIT	11	// 11 #NP 段不存在(有错误代码) 
+#define 	ISR_STACK_ERR		12	// 12 #SS 栈错误(有错误代码) 
+#define 	ISR_GEN_PROTECT	13	// 13 #GP 常规保护(有错误代码) 
+#define 	ISR_PAGE_FAULT	14	// 14 #PF 页故障(有错误代码) 
+#define 	ISR_RESERVE		15	// 15 CPU 保留 
+#define	ISR_MF				16	// 16 #MF 浮点处理单元错误 
+#define	ISR_AC				17	// 17 #AC 对齐检查 
+#define	ISR_MC 				18	// 18 #MC 机器检查 
+#define	ISR_SIMD			19	// 19 #XM SIMD(单指令多数据)浮点异常
+
+#define  IRQ_TIMER			32 	// 电脑系统计时器
+#define  IRQ_KEYBOARD		33 	// 键盘
+#define  IRQ2					34 	// 与 IRQ9 相接，MPU-401 MD 使用
+#define  IRQ_SERIAL1			35 	// 串口设备
+#define  IRQ_SERIAL2			36 	// 串口设备
+#define  IRQ_SOUND			37 	// 建议声卡使用
+#define  IRQ_FLOPPY			38 	// 软驱传输控制使用
+#define  IRQ_PRINTER			39 	// 打印机传输控制使用
+#define  IRQ_REALTIME		40 	// 即时时钟
+#define  IRQ9					41 	// 与 IRQ2 相接，可设定给其他硬件
+#define  IRQ_NETCARD		42 	// 建议网卡使用
+#define  IRQ_AGP_VIDEO		43 	// 建议 AGP 显卡使用
+#define  IRQ_MOUSE			44 	// 接 PS/2 鼠标，也可设定给其他硬件
+#define  IRQ_COPROCESS		45 	// 协处理器使用
+#define  IRQ_IDE0_HD		46 	// IDE0 传输控制使用
+#define  IRQ_IDE1_HD		47 	// IDE1 传输控制使用
+
+
 /*全局描述符表寄存器*/
 struct gdtr_t
 {

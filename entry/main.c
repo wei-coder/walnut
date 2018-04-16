@@ -97,6 +97,9 @@ void entry_kernel()
 	/*¿ªÖÐ¶Ï*/
 	asm volatile ("sti");
 
+	init_hd();
+	while(1);
+	
 	move_to_user_mode();
 	fork();
 	while(1)

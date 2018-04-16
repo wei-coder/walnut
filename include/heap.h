@@ -48,6 +48,9 @@ void *kmalloc(u32 len);
 // 内存释放
 void kfree(void *p);
 
+void* malloc(u32 len);
+void free(void* p);
+
 // 测试内核堆申请释放
 void test_heap();
 

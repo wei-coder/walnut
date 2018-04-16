@@ -16,7 +16,6 @@ struct tms
 
 
 void init_timer(u32 frequency);
-//void timer_callback(int_cont_t * context);
 void timer_callback();
 
 #endif

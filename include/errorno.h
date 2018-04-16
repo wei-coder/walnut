@@ -2,6 +2,9 @@
 ¥ÌŒÛ¬Î∂®“Â
 */
 
+#ifndef __ERROR_H
+#define __ERROR_H
+
 extern int errno;
 
 #define ERROR           99
@@ -44,3 +47,5 @@ extern int errno;
 #define ENOLCK          37
 #define ENOSYS          38
 #define ENOTEMPTY       39
+
+#endif

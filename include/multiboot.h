@@ -3,6 +3,8 @@ filename:	multiboot.h
 本文件定义了GRUB相关的数据结构，主要借用了hurlex的实现
 */
 
+#ifndef __MULTIBOOT_H
+#define __MULTIBOOT_H
 
 #include "types.h"
 
@@ -84,3 +86,5 @@ typedef struct mmap_entry_t {
 // 声明全局的 multiboot_t * 指针
 // 内核页表建立后的指针
 extern multiboot_t *mboot_ptr_tmp;
+
+#endif
