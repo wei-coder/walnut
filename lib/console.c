@@ -34,23 +34,6 @@ static void move_cursor()
 	outb(0x3D5, cursorLocation); 			//发送位置的低8bit
 };
 
-/********************************************************
-函数说明:  清屏函数
-********************************************************/
-void clear_screen()
-{
-	u8	blank_attr = (0 << 4) | (15 & 0x0F);
-	u16	blank = 0x20 | (blank_attr << 8);
-
-	for (int i = 0; i < 80 * 25; i++)
-	{
-		video_memory[i] = blank;
-	}
-
-	horiz_c = 0;
-	verti_c = 0;
-	move_cursor();
-};
 
 /********************************************************
 函数说明: 滚屏
@@ -74,6 +57,24 @@ static void scroll()
 
 		verti_c = 24;
 	}
+};
+
+/********************************************************
+函数说明:  清屏函数
+********************************************************/
+void clear_screen()
+{
+	u8	blank_attr = (0 << 4) | (15 & 0x0F);
+	u16	blank = 0x20 | (blank_attr << 8);
+
+	for (int i = 0; i < 80 * 25; i++)
+	{
+		video_memory[i] = blank;
+	}
+
+	horiz_c = 0;
+	verti_c = 0;
+	move_cursor();
 };
 
 /********************************************************
@@ -446,7 +447,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 
 		case 's':
 			s = va_arg(args, char *);
-			len = strnlen(s, precision);
+			len = (int)strnlen(s, precision);
 
 			if (!(flags & LEFT))
 				while (len < field_width--)

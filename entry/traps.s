@@ -1,153 +1,183 @@
-;filename:	traps.s
-;author:	wei-coder
-;date:		2017-12
-;purpose:	中断及各种调用门、陷阱门的入口函数。目前的实现借用了hurlex的idt.s的实现，目的是快速搭一个架子。
+;filename: traps.s
+;author:   wei-coder
+;date:	   2018-2
 
-; 用于没有错误代码的中断
-%macro ISR_NOERRCODE 1
-[GLOBAL isr%1]
-isr%1:
-	cli                         ; 首先关闭中断
-	push 0                      ; push 无效的中断错误代码(起到占位作用，便于所有isr函数统一清栈)
-	push %1                     ; push 中断号
-	jmp isr_common_stub
-%endmacro
 
-; 用于有错误代码的中断
-%macro ISR_ERRCODE 1
-[GLOBAL isr%1]
-isr%1:
-	cli                         ; 关闭中断
-	push %1                     ; push 中断号
-	jmp isr_common_stub
-%endmacro
+_SELECTOR_KER_DS	equ	0x68
 
-; 定义中断处理函数
-ISR_NOERRCODE  0 	; 0 #DE 除 0 异常
-ISR_NOERRCODE  1 	; 1 #DB 调试异常
-ISR_NOERRCODE  2 	; 2 NMI
-ISR_NOERRCODE  3 	; 3 BP 断点异常 
-ISR_NOERRCODE  4 	; 4 #OF 溢出 
-ISR_NOERRCODE  5 	; 5 #BR 对数组的引用超出边界 
-ISR_NOERRCODE  6 	; 6 #UD 无效或未定义的操作码 
-ISR_NOERRCODE  7 	; 7 #NM 设备不可用(无数学协处理器) 
-ISR_ERRCODE    8 	; 8 #DF 双重故障(有错误代码) 
-ISR_NOERRCODE  9 	; 9 协处理器跨段操作
-ISR_ERRCODE   10 	; 10 #TS 无效TSS(有错误代码) 
-ISR_ERRCODE   11 	; 11 #NP 段不存在(有错误代码) 
-ISR_ERRCODE   12 	; 12 #SS 栈错误(有错误代码) 
-ISR_ERRCODE   13 	; 13 #GP 常规保护(有错误代码) 
-ISR_ERRCODE   14 	; 14 #PF 页故障(有错误代码) 
-ISR_NOERRCODE 15 	; 15 CPU 保留 
-ISR_NOERRCODE 16 	; 16 #MF 浮点处理单元错误 
-ISR_ERRCODE   17 	; 17 #AC 对齐检查 
-ISR_NOERRCODE 18 	; 18 #MC 机器检查 
-ISR_NOERRCODE 19 	; 19 #XM SIMD(单指令多数据)浮点异常
 
-; 20~31 Intel 保留
-ISR_NOERRCODE 20
-ISR_NOERRCODE 21
-ISR_NOERRCODE 22
-ISR_NOERRCODE 23
-ISR_NOERRCODE 24
-ISR_NOERRCODE 25
-ISR_NOERRCODE 26
-ISR_NOERRCODE 27
-ISR_NOERRCODE 28
-ISR_NOERRCODE 29
-ISR_NOERRCODE 30
-ISR_NOERRCODE 31
-; 32～255 用户自定义
-ISR_NOERRCODE 255
-
-[GLOBAL isr_common_stub]
-[EXTERN isr_handler]
-; 中断服务程序
-isr_common_stub:
-	pusha                    ; Pushes edi, esi, ebp, esp, ebx, edx, ecx, eax
-	mov ax, ds
-	push eax                ; 保存数据段描述符
-	
-	mov ax, 0x10            ; 加载内核数据段描述符表
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ss, ax
-	
-	push esp		; 此时的 esp 寄存器的值等价于 pt_regs 结构体的指针
-	call isr_handler        ; 在 C 语言代码里
-	add esp, 4 		; 清除压入的参数
-	
-	pop ebx                 ; 恢复原来的数据段描述符
-	mov ds, bx
-	mov es, bx
-	mov fs, bx
-	mov gs, bx
-	mov ss, bx
-	
-	popa                     ; Pops edi, esi, ebp, esp, ebx, edx, ecx, eax
-	add esp, 8               ; 清理栈里的 error code 和 ISR
+;# int0
+;# 下面是被零除出错(divide_error)处理代码。标号'_divide_error'实际上是C 语言函
+;# 数divide_error()编译后所生成模块中对应的名称。'_do_divide_error'函数在traps.c 中。
+[GLOBAL divide_error]
+[EXTERN do_divide_error]
+divide_error:
+	push do_divide_error
+no_error_code:
+	xchg [esp],eax
+	push ebx
+	push ecx
+	push edx
+	push edi
+	push esi
+	push ebp
+	push ds
+	push es
+	push fs
+	push 0			;# "error code"
+	lea edx,[esp+44]       ;# 取原调用返回地址处堆栈指针位置，并压入堆栈。
+	push edx
+	mov edx,_SELECTOR_KER_DS         ;# 内核代码数据段选择符。
+	mov ds,dx
+	mov es,dx
+	mov fs,dx             ;# 下行上的'*'号表示是绝对调用操作数，与程序指针PC 无关。
+	call eax              ;# 调用C 函数do_divide_error()。
+	add esp,8            ;# 让堆栈指针重新指向寄存器fs 入栈处。
+	pop fs
+	pop es
+	pop ds
+	pop ebp
+	pop esi
+	pop edi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
 	iret
-.end:
 
+;# int1 -- debug 调试中断入口点。处理过程同上。
+[GLOBAL debug]
+[EXTERN do_int3]
+debug:
+	push do_int3		;# _do_debug # _do_debug C 函数指针入栈。以下同。
+	jmp no_error_code
+;# int2 -- 非屏蔽中断调用入口点。
+[GLOBAL nmi]
+[EXTERN do_nmi]
+nmi:
+	push do_nmi
+	jmp no_error_code
 
-; 构造中断请求的宏
-%macro IRQ 2
-[GLOBAL irq%1]
-irq%1:
-	cli
-	push 0
-	push %2
-	jmp irq_common_stub
-%endmacro
+[GLOBAL int3]
+[EXTERN do_int3]
+int3:
+	push do_int3
+	jmp no_error_code
+;# int4 -- 溢出出错处理中断入口点。
+[GLOBAL overflow]
+[EXTERN do_overflow]
+overflow:
+	push do_overflow
+	jmp no_error_code
+;# int5 -- 边界检查出错中断入口点。
+[GLOBAL bounds]
+[EXTERN do_bounds]
+bounds:
+	push do_bounds
+	jmp no_error_code
+;# int6 -- 无效操作指令出错中断入口点。
+[GLOBAL invalid_op]
+[EXTERN do_invalid_op]
+invalid_op:
+	push do_invalid_op
+	jmp no_error_code
+;# int9 -- 协处理器段超出出错中断入口点。
+[GLOBAL coprocessor_segment_overrun]
+[EXTERN do_coprocessor_segment_overrun]
+coprocessor_segment_overrun:
+	push do_coprocessor_segment_overrun
+	jmp no_error_code
+;# int15 – 保留。
+[GLOBAL reserved]
+[EXTERN do_reserved]
+reserved:
+	push do_reserved
+	jmp no_error_code
+	
+;# int45 -- ( = 0x20 + 13 ) 数学协处理器（Coprocessor）发出的中断。
+;# 当协处理器执行完一个操作时就会发出IRQ13 中断信号，以通知CPU 操作完成。
+[GLOBAL irq13]
+[EXTERN coprocessor_error]
+irq13:
+	push eax
+	xor al,al            ;# 80387 在执行计算时，CPU 会等待其操作的完成。
+	out 0xF0,al          ;# 通过写0xF0 端口，本中断将消除CPU 的BUSY 延续信号，并重新
+                                ;# 激活80387 的处理器扩展请求引脚PEREQ。该操作主要是为了确保
+                                ;# 在继续执行80387 的任何指令之前，响应本中断。
+	mov al,0x20
+	out 0x20,al          ;# 向8259 主中断控制芯片发送EOI（中断结束）信号。
+	jmp .1
+.1:	jmp .2
+.2:	out 0xA0,al          ;# 再向8259 从中断控制芯片发送EOI（中断结束）信号。
+	pop eax
+	jmp coprocessor_error  ;# _coprocessor_error 原来在本文件中，现在已经放到
+                                ;# （kernel/system_call.s）
 
-IRQ   0,    32 	; 电脑系统计时器
-IRQ   1,    33 	; 键盘
-IRQ   2,    34 	; 与 IRQ9 相接，MPU-401 MD 使用
-IRQ   3,    35 	; 串口设备
-IRQ   4,    36 	; 串口设备
-IRQ   5,    37 	; 建议声卡使用
-IRQ   6,    38 	; 软驱传输控制使用
-IRQ   7,    39 	; 打印机传输控制使用
-IRQ   8,    40 	; 即时时钟
-IRQ   9,    41 	; 与 IRQ2 相接，可设定给其他硬件
-IRQ  10,    42 	; 建议网卡使用
-IRQ  11,    43 	; 建议 AGP 显卡使用
-IRQ  12,    44 	; 接 PS/2 鼠标，也可设定给其他硬件
-IRQ  13,    45 	; 协处理器使用
-IRQ  14,    46 	; IDE0 传输控制使用
-IRQ  15,    47 	; IDE1 传输控制使用
+;# 以下中断在调用时会在中断返回地址之后将出错号压入堆栈，因此返回时也需要将出错号弹出。
+;# int8 -- 双出错故障。
+[GLOBAL double_fault]
+[EXTERN do_double_fault]
+double_fault:
+	push do_double_fault
+error_code:
+	xchg [esp+4],eax		;# error code <-> %eax
+	xchg [esp],ebx		;# &function <-> %ebx
+	push ecx
+	push edx
+	push edi
+	push esi
+	push ebp
+	push ds
+	push es
+	push fs
+	push eax			;# error code
+	lea eax,[esp+44]		;# offset
+	push eax
+	mov eax,_SELECTOR_KER_DS
+	mov ds,ax
+	mov es,ax
+	mov fs,ax
+	call ebx
+	add esp,8
+	pop fs
+	pop es
+	pop ds
+	pop ebp
+	pop esi
+	pop edi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	iret
+;# int10 -- 无效的任务状态段(TSS)。
+[GLOBAL invalid_TSS]
+[EXTERN do_invalid_TSS]
+invalid_TSS:
+	push do_invalid_TSS
+	jmp error_code
+;# int11 -- 段不存在。
+[GLOBAL segment_not_present]
+[EXTERN do_segment_not_present]
+segment_not_present:
+	push do_segment_not_present
+	jmp error_code
+;# int12 -- 堆栈段错误。
+[GLOBAL stack_segment]
+[EXTERN do_stack_segment]
+stack_segment:
+	push do_stack_segment
+	jmp error_code
+;# int13 -- 一般保护性出错。
+[GLOBAL general_protection]
+[EXTERN do_general_protection]
+general_protection:
+	push do_general_protection
+	jmp error_code
 
-[GLOBAL irq_common_stub]
-[EXTERN irq_handler]
-irq_common_stub:
-	pusha                    ; pushes edi, esi, ebp, esp, ebx, edx, ecx, eax
-	
-	mov ax, ds
-	push eax                 ; 保存数据段描述符
-	
-	mov ax, 0x10  		 ; 加载内核数据段描述符
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ss, ax
-	
-	push esp
-	call irq_handler
-	add esp, 4
-	
-	pop ebx                   ; 恢复原来的数据段描述符
-	mov ds, bx
-	mov es, bx
-	mov fs, bx
-	mov gs, bx
-	mov ss, bx
-	
-	popa                     ; Pops edi,esi,ebp...
-	add esp, 8     		 ; 清理压栈的 错误代码 和 ISR 编号
-	iret          		 ; 出栈 CS, EIP, EFLAGS, SS, ESP
-.end:
-
+;# int7 -- 设备不存在(_device_not_available)在(kernel/system_call.s)
+;# int14 -- 页错误(_page_fault)在(mm/page.s,14)
+;# int16 -- 协处理器错误(_coprocessor_error)在(kernel/system_call.s)
+;# 时钟中断int 0x20 (_timer_interrupt)在(kernel/system_call.s)
+;# 系统调用int 0x80 (_system_call)在（kernel/system_call.s）
 

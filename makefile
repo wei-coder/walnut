@@ -16,7 +16,7 @@ LD = ld
 ASM = nasm
 
 C_FLAGS = -c -Wall -m32 -ggdb -gstabs+ -nostdinc -fno-builtin -fno-stack-protector -I include
-LD_FLAGS = -T kernel.ld -m elf_i386 -nostdlib
+LD_FLAGS = -T kernel.ld -m elf_i386 -nostdlib -Map=walnut.map
 ASM_FLAGS = -f elf -g -F stabs
 
 all: $(S_OBJECTS) $(C_OBJECTS) link update_image
@@ -63,6 +63,7 @@ bochs:
 
 .PHONY:debug
 debug:
-	qemu -S -s -fda walnut.img -boot a &
+	qemu-system-i386 -S -s -fda walnut.img -boot a &
 	sleep 1
-	cgdb -x scripts/gdbinit
+	gdb -x gdbinit
+

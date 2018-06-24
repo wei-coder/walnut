@@ -5,7 +5,11 @@ date:		2018-1
 purpose:	线程、进程相关的数据结构定义
 */
 
+#ifndef __TASK_H
+#define __TASK_H
+
 #include "types.h"
+#include "signal.h"
 
 /*进程状态*/
 #define	TASK_UNNABLE	-1		//任务不可运行
@@ -65,7 +69,7 @@ typedef struct task_struct
 	long counter;					// long counter 任务运行时间计数(递减)（滴答数），运行时间片。
 	long priority;					// 运行优先数。任务开始运行时counter = priority，越大运行越长。
 	long signal;					//信号。是位图，每个比特位代表一种信号，信号值=位偏移值+1。
-	//struct sigaction sigaction[32];	//信号执行属性结构，对应信号将要执行的操作和标志信息。
+	struct sigaction sigaction[32];	//信号执行属性结构，对应信号将要执行的操作和标志信息。
 	long blocked;					//进程信号屏蔽码（对应信号位图）。
 	
 	int exit_code;					//任务执行停止的退出码，其父进程会取。
@@ -100,7 +104,13 @@ typedef struct task_struct
 	u32 *root;						//根目录i 节点结构。暂时通过普通指针代替
 	u32 *executable;				//执行文件i 节点结构。暂时通过普通指针代替
 	ulong close_on_exec;			//执行时关闭文件句柄位图标志。（参见include/fcntl.h）
+	u32	pdt;
+	long esp;
+	long esp0;
+	long eip;
 
 	//struct desc_t ldt[3];			//本任务的局部表描述符。0-空，1-代码段cs，2-数据和堆栈段ds&ss。
-	tss_struct tss;				//本进程的任务状态段信息结构。
+	//tss_struct tss;				//本进程的任务状态段信息结构。
 }task_struct;
+
+#endif

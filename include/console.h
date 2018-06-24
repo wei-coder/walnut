@@ -4,6 +4,8 @@ author:	wei-coder
 date:	2017-12
 purpose:	IO操作的头文件，内联函数定义
 */
+#ifndef __CONSOLE_H
+#define __CONSOLE_H
 
 #include "types.h"
 
@@ -50,3 +52,4 @@ int sprintf(char * buf, const char * fmt,...);
 int printf(const char * fmt,...);
 int vsprintf(char *buf, const char *fmt, va_list args);
 
+#endif

@@ -5,6 +5,9 @@ date:		2017-12
 purpose:	定义内核调试函数的相关数据结构及函数声明
 */
 
+#ifndef _KERN_DEBUG_H
+#define _KERN_DEBUG_H
+
 #include "types.h"
 
 #define ELF32_ST_TYPE(i) ((i)&0xf)
@@ -56,3 +59,4 @@ void print_stack_trace();
 
 void panic(const char * msg);
 
+#endif
