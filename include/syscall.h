@@ -2,6 +2,11 @@
 filename:	syscall.h
 author:		直接借用了linux0.11的实现
 */
+<<<<<<< HEAD
+=======
+#if 1
+
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 #ifndef __SYSCALL_H
 #define __SYSCALL_H
 
@@ -96,3 +101,7 @@ sys_setreuid,sys_setregid };
 
 
 #endif
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24

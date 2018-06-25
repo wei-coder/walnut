@@ -53,6 +53,52 @@ void show_stat (void)
 }
 
 
+<<<<<<< HEAD
+/*schedule()是调度函数。 */
+void schedule (void)
+{
+    int i,next,c;
+    struct task_struct ** p;
+
+    while (1) 
+    {
+        c = -1;
+        next = 0;
+        i = 65;
+        p = &task[NR_TASKS];
+        // 这段代码也是从任务数组的最后一个任务开始循环处理，并跳过不含任务的数组槽。比较每个就绪
+        // 状态任务的counter（任务运行时间的递减滴答计数）值，哪一个值大，运行时间还不长，next 就
+        // 指向哪个的任务号。
+        while (--i) 
+        {
+            if (!*--p)
+            {
+                continue;
+            }
+            
+            if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
+            {
+                c = (*p)->counter, next = i-1;
+            }
+        }
+        
+        if (c) 
+            break;
+        // 否则就根据每个任务的优先权值，更新每一个任务的counter 值，然后回到125 行重新比较。
+        // counter 值的计算方式为counter = counter /2 + priority。这里计算过程不考虑进程的状态。    
+        for(p = &LAST_TASK ; p >= &FIRST_TASK ; --p)
+        {
+            if (*p)
+            {
+                (*p)->counter = ((*p)->counter >> 1) + (*p)->priority;
+            }
+        }
+    }
+    // 切换到任务号为next 的任务运行。因此若系统中没有任何其它任务
+    // 可运行时，则next 始终为0。因此调度函数会在系统空闲时去执行任务0。此时任务0 仅执行
+    // pause()系统调用，并又会调用本函数。
+    switch_to(next);
+=======
 /*schedule()是调度函数。 */
 void schedule (void)
 {
@@ -99,6 +145,59 @@ void schedule (void)
     switch_to(next);
 }
 
+#if 0
+/*schedule()是调度函数。 */
+void schedule (void)
+{
+	int i, next, c;
+	struct task_struct **p;
+
+  /* 调度程序的主要部分 */
+	while (1)
+	{
+		c = -1;
+		next = 0;
+		i = NR_TASKS+1;
+		p = &task[NR_TASKS];
+		// 这段代码也是从任务数组的最后一个任务开始循环处理，并跳过不含任务的数组槽。比较每个就绪
+		// 状态任务的counter（任务运行时间的递减滴答计数）值，哪一个值大，运行时间还不长，next 就
+		// 指向哪个的任务号。
+		while (--i)
+		{
+			if (!*--p)
+			{
+				continue;
+			}
+			if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
+			{
+				c = (*p)->counter;
+				next = i-1;
+			}
+		}
+
+		printf("schedule next pid:%d; count:%d\n", task[next]->pid, c);
+		//如果找到了计数大于0的任务，则切换任务即可
+		if (c)
+		{
+			break;
+		}
+		// 否则就根据每个任务的优先权值，更新每一个任务的counter 值，然后重新比较。
+		// counter 值的计算方式为counter = counter /2 + priority。[右边counter=0]
+		for (p = &FIRST_TASK; p < &LAST_TASK; ++p)
+		{
+			if (*p)
+			{
+				(*p)->counter = ((*p)->counter >> 1) + (*p)->priority;
+			}
+		}
+	}
+	//需要更新ESP0才能切换，否则切换失败
+	//task[next]->tss.esp0 = (long)&(task[next]) + PAGE_SIZE;
+	switch_to (next);		// 切换到任务号为next 的任务，并运行之。
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
+}
+#endif
+
 
 // 调度程序的初始化子程序。
 void sched_init (void)
@@ -117,7 +216,11 @@ void sched_init (void)
 	//设置时钟中断处理程序句柄（设置时钟中断门）。
 	set_intr_gate(0x20,&timer_interrupt);
 	// 修改中断控制器屏蔽码，允许时钟中断。
+<<<<<<< HEAD
 	outb(0x21, inb_p(0x21)&0xFE);
+=======
+	outb_p(inb_p(0x21)&~0x01,0x21);
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 
 	// 设置系统调用中断门。
 	set_system_gate (0x80, &system_call);

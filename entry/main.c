@@ -81,7 +81,10 @@ __attribute__((section(".init.text"))) int main()
 
 void entry_kernel()
 {
+<<<<<<< HEAD
 	int ret = 0;
+=======
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 	char string[] = "welcome to walnut os world!\n";
 	clear_screen();
 	show_string_color(string, 0, 4);
@@ -95,6 +98,7 @@ void entry_kernel()
 	init_timer(100);
 
 	sched_init();
+<<<<<<< HEAD
 
 	/*开中断*/
 	asm volatile ("sti");
@@ -110,6 +114,19 @@ void entry_kernel()
 	else if(ret > 0)
 	{
 		printf("this is father process!\n");
+=======
+	/*开中断*/
+	asm volatile ("sti");
+
+	init_hd();
+	while(1);
+	
+	move_to_user_mode();
+	fork();
+	while(1)
+	{
+		init();         // 在新建的子进程（任务1）中执行。
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 	}
 }
 

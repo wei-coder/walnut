@@ -125,7 +125,11 @@ void init_idt()
 
 	set_trap_gate(45,&irq13);               // 设置协处理器的陷阱门。
 	outb_p(inb_p(0x21)&0xfb,0x21);          // 允许主8259A 芯片的IRQ2 中断请求。
+<<<<<<< HEAD
 	outb(0xA1,inb_p(0xA1)&0xdf);            // 允许从8259A 芯片的IRQ13 中断请求。
+=======
+	outb_p(inb_p(0xA1)&0xdf,0xA1);            // 允许从8259A 芯片的IRQ13 中断请求。
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 	set_trap_gate(39,&parallel_interrupt);  // 设置并行口的陷阱门。
 
 

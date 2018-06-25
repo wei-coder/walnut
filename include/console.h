@@ -7,6 +7,9 @@ purpose:	IO操作的头文件，内联函数定义
 #ifndef __CONSOLE_H
 #define __CONSOLE_H
 
+#ifndef __CONSOLE_H
+#define __CONSOLE_H
+
 #include "types.h"
 
 #define HEX	16
@@ -52,4 +55,8 @@ int sprintf(char * buf, const char * fmt,...);
 int printf(const char * fmt,...);
 int vsprintf(char *buf, const char *fmt, va_list args);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 #endif

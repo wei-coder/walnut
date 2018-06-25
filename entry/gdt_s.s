@@ -18,7 +18,7 @@ gdt_loader:
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
-	jmp _SELECTOR_KER_CS:.flush   	; 远跳转，0x08是代码段描述符
+	jmp _SELECTOR_KER_CS:.flush   	; 远跳转，0x60是代码段描述符
 			  		; 远跳目的是清空流水线并串行化处理器
 .flush:
 	ret

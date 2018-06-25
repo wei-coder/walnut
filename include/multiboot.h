@@ -3,9 +3,14 @@ filename:	multiboot.h
 本文件定义了GRUB相关的数据结构，主要借用了hurlex的实现
 */
 
+<<<<<<< HEAD
 #ifndef _MULTIBOOT_H
 #define _MULTIBOOT_H
 
+=======
+#ifndef __MULTIBOOT_H
+#define __MULTIBOOT_H
+>>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 
 #include "types.h"
 

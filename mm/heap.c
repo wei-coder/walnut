@@ -7,7 +7,6 @@ purpose:	堆内存管理的相关函数实现
 
 #include "heap.h"
 #include "console.h"
-#include "memory.h"
 
 // 申请内存块
 static u32 alloc_chunk(u32 start, u32 len);
@@ -29,10 +28,11 @@ static u32 heap_end = HEAP_START;
 /*内核堆的起始地址*/
 static list_t mem_list = {0};
 
-extern u32*	pdt;
+pdt_t* current_pdt;
 
 void init_heap()
 {
+	current_pdt = pdt;
 	mem_list.head = NULL;
 	mem_list.tail = NULL;
 }
@@ -111,7 +111,7 @@ u32 alloc_chunk(u32 start, u32 len)
 	{
 		u32 page = (u32)alloc_page();
 		//printf("alloc chunk page = 0x%08X, start= 0x%08X\n", page, start);
-		map((pdt_t*)pdt, heap_end, page, PAGE_FLAG);
+		map((pdt_t*)current_pdt, heap_end, page, PAGE_FLAG);
 		heap_end += PAGE_SIZE;
 		ret += PAGE_SIZE;
 	}
@@ -192,8 +192,8 @@ void free_block(node_t * block)
 	for(int i = 0; i< (end - start)/PAGE_SIZE; i++)
 	{
 		u32 page;
-		get_mapping((pdt_t*)pdt, (start+i*PAGE_SIZE), &page);
-		unmap((pdt_t*)pdt, (start+i*PAGE_SIZE));
+		get_mapping(current_pdt, (start+i*PAGE_SIZE), &page);
+		unmap(current_pdt, (start+i*PAGE_SIZE));
 		free_page(page);
 	}
 }
@@ -269,4 +269,14 @@ void test_heap()
 	printf("free mem in 0x%08X\n\n", addr4);
 	kfree(addr4);
 }
+
+void* malloc(u32 len)
+{
+	return kmalloc(len);
+};
+void free(void* p)
+{
+	kfree(p);
+	return;
+};
 
