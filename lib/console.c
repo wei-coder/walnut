@@ -447,7 +447,7 @@ int vsprintf(char *buf, const char *fmt, va_list args)
 
 		case 's':
 			s = va_arg(args, char *);
-			len = (int)strnlen(s, precision);
+			len = strnlen(s, precision);
 
 			if (!(flags & LEFT))
 				while (len < field_width--)

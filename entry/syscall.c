@@ -14,16 +14,11 @@ extern long volatile jiffies;							// 从开机开始算起的滴答数时间值（10ms/滴答）
 extern long startup_time;								// 开机时间。从1970:0:0:0 开始计时的秒数。
 extern struct task_struct *current;						// 当前任务指针（初始化为初始任务）。
 extern struct task_struct *task[NR_TASKS];				// 定义任务指针数组。
-<<<<<<< HEAD
-=======
-//extern long user_stack[PAGE_SIZE >> 2];					//定义系统堆栈指针，4K。指针指在最后一项。
 
 ulong do_hd;
 ulong do_floppy;
->>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 
-ulong do_hd;
-ulong do_floppy;
+//stack_t stack_start = {&user_stack[PAGE_SIZE >> 2], _SELECTOR_KER_DS};		//定义任务0的系统堆栈地址
 
 
 //// 时钟中断C 函数处理程序，在kernel/system_call.s 中的_timer_interrupt（176 行）被调用。

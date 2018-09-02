@@ -5,20 +5,19 @@ date:		2018-1
 purpose:	fork进程的相关函数实现
 */
 
-#if 1
-
-#define __LIBRARY__
-
 #include "types.h"
-#include "unistd.h"
 #include "errorno.h"
 #include "string.h"
 #include "memory.h"
 #include "sched.h"
 
+#define __LIBRARY__
+#include "unistd.h"
+
 long last_pid=0;
 
 extern void ret_from_sys_call(void);
+
 inline _syscall0(int,fork)
 
 
@@ -51,7 +50,7 @@ int copy_mem(int nr,struct task_struct * proc, struct task_struct * f_proc)
 	proc->pdt = (u32)alloc_page();
 	if(0 != proc->pdt)
 	{
-		memset((void*)(proc->pdt+PAGE_OFFSET), 0, PAGE_SIZE);
+		memset((const void*)(proc->pdt+PAGE_OFFSET), 0, PAGE_SIZE);
 	}
 	
 	if(copy_page_tables((u32*)(f_proc->pdt + PAGE_OFFSET), (u32*)(proc->pdt + PAGE_OFFSET)) )
@@ -196,4 +195,3 @@ int find_empty_process(void)
     return -EAGAIN;
 }
 
-#endif

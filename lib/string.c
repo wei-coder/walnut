@@ -58,7 +58,7 @@ int strncmp(const char *cs, const char *ct, size_t count)
 	return 0;
 }
 
-size_t strnlen(const char *s, size_t maxlen)
+int strnlen(const char *s, size_t maxlen)
 {
 	const char *es = s;
 	while (*es && maxlen) {

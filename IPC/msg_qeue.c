@@ -7,6 +7,7 @@ prupose:	消息队列的实现
 
 #include "list.h"
 
+#if 0
 list_t msg_queue;
 
 void init_msgq()
@@ -24,3 +25,4 @@ msg_t* recve_msg()
 {
 
 }
+#endif

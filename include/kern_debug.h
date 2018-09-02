@@ -5,13 +5,8 @@ date:		2017-12
 purpose:	定义内核调试函数的相关数据结构及函数声明
 */
 
-<<<<<<< HEAD
-#ifndef _KERN_DEBUG_H
-#define _KERN_DEBUG_H
-=======
 #ifndef __KERN_DEBUG_H
 #define __KERN_DEBUG_H
->>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 
 #include "types.h"
 

@@ -6,7 +6,9 @@ prupose:	链表操作的基本实现
 */
 
 #include "list.h"
+#include "heap.h"
 
+#if 0
 list_t* create_list()
 {
 	list_t * plist = malloc();
@@ -48,7 +50,7 @@ bool delete(node_t* pNode, list_t* plist)
 	bool ret = FALSE;
 	if (NULL == plist)
 	{
-		return;
+		return ret;
 	};
 	
 	node_t* tmpNode = plist->head;
@@ -95,3 +97,4 @@ void pop(list_t* plist)
 	};
 	free(tmpNode);
 };
+#endif

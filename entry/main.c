@@ -17,6 +17,7 @@ prupose:	操作系统的入口函数
 #include "init.h"
 #include "sched.h"
 #include "trap_gate.h"
+#include "hd.h"
 
 // 开启分页机制之后的内核栈
 char user_stack[STACK_SIZE]  __attribute__ ((aligned(16)));
@@ -81,10 +82,7 @@ __attribute__((section(".init.text"))) int main()
 
 void entry_kernel()
 {
-<<<<<<< HEAD
 	int ret = 0;
-=======
->>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
 	char string[] = "welcome to walnut os world!\n";
 	clear_screen();
 	show_string_color(string, 0, 4);
@@ -98,35 +96,22 @@ void entry_kernel()
 	init_timer(100);
 
 	sched_init();
-<<<<<<< HEAD
-
 	/*开中断*/
 	asm volatile ("sti");
 
+	//init_hd();
+
 	move_to_user_mode();
-	printf("start user mode!\n");
+	printf("***start user mode!\n");
 	ret = fork();
 	if(0 == ret)
 	{
-		printf("this is son process!\n");
-		init();
-	}
-	else if(ret > 0)
-	{
-		printf("this is father process!\n");
-=======
-	/*开中断*/
-	asm volatile ("sti");
-
-	init_hd();
-	while(1);
-	
-	move_to_user_mode();
-	fork();
-	while(1)
-	{
+		printf("son process:init start operating!\n");
 		init();         // 在新建的子进程（任务1）中执行。
->>>>>>> 2747b789ab05c6901e2e08b9db7fbb72fd8f6f24
+	}
+	else if(0 < ret)
+	{
+		printf("father process operating!\n");
 	}
 }
 

@@ -113,4 +113,11 @@ typedef struct task_struct
 	//tss_struct tss;				//本进程的任务状态段信息结构。
 }task_struct;
 
+#ifdef MM_STRUCT
+typedef struct mm_struct
+{
+	long 
+}mm_struct;
+#endif
+
 #endif

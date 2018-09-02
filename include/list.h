@@ -8,6 +8,7 @@ prupose:	链表的相关数据结构定义及函数声明
 #ifndef __LIST_H
 #define __LIST_H
 
+#if 0
 #include "types.h"
 
 typedef struct NODE
@@ -28,5 +29,6 @@ void insert(node_t* pNode, list_t* plist);
 bool delete(node_t* pNode, list_t* plist);
 void pop(list_t* plist);
 void destroy(list_t* plist);
+#endif
 #endif
 

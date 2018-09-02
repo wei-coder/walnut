@@ -269,7 +269,7 @@ void map(pdt_t* pdt_now, u32 va, u32 pa, u32 flags)
 		/*使页目录指向页表*/
 		pdt_now[pdt_idx] = (pdt_t)((u32)pte | PDT_FLAG);
 
-		memset((void*)((u32)pte + PAGE_OFFSET), 0, PAGE_SIZE);
+		memset((const void*)((u32)pte + PAGE_OFFSET), 0, PAGE_SIZE);
 	}
 	else
 	{

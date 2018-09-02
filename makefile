@@ -66,4 +66,3 @@ debug:
 	qemu-system-i386 -S -s -fda walnut.img -boot a &
 	sleep 1
 	gdb -x gdbinit
-
