@@ -15,7 +15,7 @@ do_floppy           0x4               ./entry/syscall.o
 舍弃的输入节
 
  .comment       0x0000000000000000       0x36 ./driver/hd.o
- .eh_frame      0x0000000000000000       0x7c ./driver/hd.o
+ .eh_frame      0x0000000000000000       0xfc ./driver/hd.o
  .comment       0x0000000000000000       0x36 ./driver/io.o
  .comment       0x0000000000000000       0x36 ./driver/timer.o
  .eh_frame      0x0000000000000000       0x58 ./driver/timer.o
@@ -85,7 +85,7 @@ do_floppy           0x4               ./entry/syscall.o
  *fill*         0x0000000000101410      0xbf0 
                 0x00000000c0102000                . = (. + 0xc0000000)
 
-.text           0x00000000c0102000     0x4000 加载地址 0x0000000000102000
+.text           0x00000000c0102000     0x5000 加载地址 0x0000000000102000
  *(.text)
  .text          0x00000000c0102000       0x1d ./entry/gdt_s.o
                 0x00000000c0102000                gdt_loader
@@ -121,374 +121,377 @@ do_floppy           0x4               ./entry/syscall.o
  *fill*         0x00000000c01022b5        0xb 
  .text          0x00000000c01022c0       0x37 ./mm/page.o
                 0x00000000c01022c0                page_fault
- .text          0x00000000c01022f7       0x86 ./driver/hd.o
+ .text          0x00000000c01022f7      0x1a1 ./driver/hd.o
                 0x00000000c01022f7                read_intr
                 0x00000000c01022fd                write_intr
                 0x00000000c0102303                init_hd
- .text          0x00000000c010237d        0x0 ./driver/io.o
- .text          0x00000000c010237d       0x7c ./driver/timer.o
-                0x00000000c010237d                timer_callback
-                0x00000000c01023a2                init_timer
- .text          0x00000000c01023f9        0x0 ./entry/errorno.o
- .text          0x00000000c01023f9      0x3ad ./entry/fork.o
-                0x00000000c01023f9                fork
-                0x00000000c0102425                copy_mem
-                0x00000000c01024bb                copy_process
-                0x00000000c0102717                find_empty_process
- .text          0x00000000c01027a6      0x38c ./entry/kern_debug.o
-                0x00000000c01027a6                elf_from_multiboot
-                0x00000000c01028d7                init_debug
-                0x00000000c0102926                elf_lookup_symbol
-                0x00000000c01029f1                print_cur_status
-                0x00000000c0102aae                panic
-                0x00000000c0102adf                print_stack_trace
- .text          0x00000000c0102b32       0xf4 ./entry/main.o
-                0x00000000c0102b32                entry_kernel
- .text          0x00000000c0102c26      0x525 ./entry/pm.o
-                0x00000000c0102c26                gdt_set_gate
-                0x00000000c0102c93                init_gdt
-                0x00000000c0102d6f                idt_set_gate
-                0x00000000c0102dd7                init_idt
- .text          0x00000000c010314b      0x714 ./entry/syscall.o
-                0x00000000c010314b                do_timer
-                0x00000000c01031b5                sys_alarm
-                0x00000000c010321e                sys_getpid
-                0x00000000c010322e                sys_getppid
-                0x00000000c010323e                sys_getuid
-                0x00000000c0103252                sys_geteuid
-                0x00000000c0103266                sys_getgid
-                0x00000000c010327a                sys_getegid
-                0x00000000c010328e                sys_nice
-                0x00000000c01032bb                sys_setup
-                0x00000000c01032c5                sys_exit
-                0x00000000c01032cf                sys_read
-                0x00000000c01032d9                sys_write
-                0x00000000c01032e3                sys_open
-                0x00000000c01032ed                sys_close
-                0x00000000c01032f7                sys_waitpid
-                0x00000000c0103301                sys_creat
-                0x00000000c010330b                sys_link
-                0x00000000c0103315                sys_unlink
-                0x00000000c010331f                sys_chdir
-                0x00000000c0103329                sys_mknod
-                0x00000000c0103333                sys_chmod
-                0x00000000c010333d                sys_chown
-                0x00000000c0103347                sys_stat
-                0x00000000c0103351                sys_lseek
-                0x00000000c010335b                sys_mount
-                0x00000000c0103365                sys_umount
-                0x00000000c010336f                sys_fstat
-                0x00000000c0103379                sys_pause
-                0x00000000c0103383                sys_utime
-                0x00000000c010338d                sys_access
-                0x00000000c0103397                sys_sync
-                0x00000000c01033a1                sys_kill
-                0x00000000c01033ab                sys_mkdir
-                0x00000000c01033b5                sys_rmdir
-                0x00000000c01033bf                sys_dup
-                0x00000000c01033c9                sys_pipe
-                0x00000000c01033d3                sys_signal
-                0x00000000c01033dd                sys_ioctl
-                0x00000000c01033e7                sys_fcntl
-                0x00000000c01033f1                sys_chroot
-                0x00000000c01033fb                sys_ustat
-                0x00000000c0103405                sys_dup2
-                0x00000000c010340f                sys_sigaction
-                0x00000000c0103419                sys_sgetmask
-                0x00000000c0103423                sys_ssetmask
-                0x00000000c010342d                do_signal
-                0x00000000c0103433                math_error
-                0x00000000c0103439                math_state_restore
-                0x00000000c010343f                math_emulate
-                0x00000000c0103472                do_execve
-                0x00000000c010347c                unexpected_hd_interrupt
-                0x00000000c0103495                unexpected_floppy_interrupt
-                0x00000000c010349b                sys_ftime
-                0x00000000c01034a5                sys_break
-                0x00000000c01034af                sys_ptrace
-                0x00000000c01034b9                sys_stty
-                0x00000000c01034c3                sys_gtty
-                0x00000000c01034cd                sys_rename
-                0x00000000c01034d7                sys_prof
-                0x00000000c01034e1                sys_setregid
-                0x00000000c0103577                sys_setgid
-                0x00000000c010358a                sys_acct
-                0x00000000c0103594                sys_phys
-                0x00000000c010359e                sys_lock
-                0x00000000c01035a8                sys_mpx
-                0x00000000c01035b2                sys_ulimit
-                0x00000000c01035bc                sys_time
-                0x00000000c01035ce                sys_setreuid
-                0x00000000c0103670                sys_setuid
-                0x00000000c0103683                sys_stime
-                0x00000000c010368d                sys_times
-                0x00000000c0103697                sys_brk
-                0x00000000c01036da                sys_setpgid
-                0x00000000c01037a7                sys_getpgrp
-                0x00000000c01037b7                sys_setsid
-                0x00000000c0103824                sys_uname
-                0x00000000c010382e                sys_umask
- .text          0x00000000c010385f      0x3ed ./entry/trap_gate.o
-                0x00000000c01039db                do_double_fault
-                0x00000000c01039fa                do_general_protection
-                0x00000000c0103a19                do_divide_error
-                0x00000000c0103a38                do_int3
-                0x00000000c0103ac7                do_nmi
-                0x00000000c0103ae6                do_debug
-                0x00000000c0103b05                do_overflow
-                0x00000000c0103b24                do_bounds
-                0x00000000c0103b43                do_invalid_op
-                0x00000000c0103b62                do_device_not_available
-                0x00000000c0103b81                do_coprocessor_segment_overrun
-                0x00000000c0103ba0                do_invalid_TSS
-                0x00000000c0103bbf                do_segment_not_present
-                0x00000000c0103bde                do_stack_segment
-                0x00000000c0103bfd                do_coprocessor_error
-                0x00000000c0103c2d                do_reserved
- .text          0x00000000c0103c4c       0x25 ./init/init.o
-                0x00000000c0103c4c                init
- .text          0x00000000c0103c71        0x0 ./IPC/mmap.o
- .text          0x00000000c0103c71        0x0 ./IPC/msg_qeue.o
- .text          0x00000000c0103c71        0x0 ./IPC/pipe.o
- .text          0x00000000c0103c71        0x0 ./IPC/signal.o
- .text          0x00000000c0103c71        0x0 ./lib/common.o
- .text          0x00000000c0103c71      0xc71 ./lib/console.o
-                0x00000000c0103d7b                clear_screen
-                0x00000000c0103dd2                show_char
-                0x00000000c0103df5                show_char_color
-                0x00000000c0103f09                show_string
-                0x00000000c0103f37                show_string_color
-                0x00000000c0103f65                itoa
-                0x00000000c0104093                show_hex_num
-                0x00000000c01040e6                show_hex_num_color
-                0x00000000c010412e                show_dec_num
-                0x00000000c0104173                show_dec_num_color
-                0x00000000c0104444                vsprintf
-                0x00000000c0104871                sprintf
-                0x00000000c010489a                printf
- .text          0x00000000c01048e2        0x0 ./lib/io.o
- .text          0x00000000c01048e2        0x0 ./lib/list.o
- .text          0x00000000c01048e2       0x43 ./lib/logging.o
-                0x00000000c01048e2                logging
- .text          0x00000000c0104925      0x3ea ./lib/string.o
-                0x00000000c0104989                memcmp
-                0x00000000c01049c9                memset
-                0x00000000c01049f9                strcmp
-                0x00000000c0104a5b                strncmp
-                0x00000000c0104abb                strnlen
-                0x00000000c0104aed                atou
-                0x00000000c0104b87                simple_strtoull
-                0x00000000c0104c87                strlen
-                0x00000000c0104caf                strstr
- .text          0x00000000c0104d0f      0x6dc ./mm/heap.o
-                0x00000000c0104d0f                init_heap
-                0x00000000c0104d7a                kmalloc
-                0x00000000c0104e64                kfree
-                0x00000000c0105288                test_heap
-                0x00000000c01053be                malloc
-                0x00000000c01053d4                free
- .text          0x00000000c01053eb      0x90c ./mm/memory.o
-                0x00000000c01053eb                show_mem_map
-                0x00000000c0105475                init_pmm
-                0x00000000c01055d1                free_page
-                0x00000000c010563a                alloc_page
-                0x00000000c01056a4                do_no_page
-                0x00000000c01056df                un_wp_page
-                0x00000000c01057c3                do_wp_page
-                0x00000000c0105826                get_virt_page
-                0x00000000c010584b                free_virt_page
-                0x00000000c0105868                init_vmm
-                0x00000000c0105949                map
-                0x00000000c01059f1                unmap
-                0x00000000c0105a58                get_mapping
-                0x00000000c0105aec                copy_page_tables
-                0x00000000c0105c66                free_page_tables
- .text          0x00000000c0105cf7      0x2af ./task/sched.o
-                0x00000000c0105cf7                show_task
-                0x00000000c0105d67                show_stat
-                0x00000000c0105daa                schedule
-                0x00000000c0105ec4                sched_init
-                0x00000000c0106000                . = ALIGN (0x1000)
- *fill*         0x00000000c0105fa6       0x5a 
+                0x00000000c010239e                hd_cmd_excu
+                0x00000000c010242b                is_hd_ready
+                0x00000000c010244a                wait_hd
+                0x00000000c010245a                hd_identify
+ .text          0x00000000c0102498        0x0 ./driver/io.o
+ .text          0x00000000c0102498       0x7c ./driver/timer.o
+                0x00000000c0102498                timer_callback
+                0x00000000c01024bd                init_timer
+ .text          0x00000000c0102514        0x0 ./entry/errorno.o
+ .text          0x00000000c0102514      0x3ad ./entry/fork.o
+                0x00000000c0102514                fork
+                0x00000000c0102540                copy_mem
+                0x00000000c01025d6                copy_process
+                0x00000000c0102832                find_empty_process
+ .text          0x00000000c01028c1      0x38c ./entry/kern_debug.o
+                0x00000000c01028c1                elf_from_multiboot
+                0x00000000c01029f2                init_debug
+                0x00000000c0102a41                elf_lookup_symbol
+                0x00000000c0102b0c                print_cur_status
+                0x00000000c0102bc9                panic
+                0x00000000c0102bfa                print_stack_trace
+ .text          0x00000000c0102c4d       0xf4 ./entry/main.o
+                0x00000000c0102c4d                entry_kernel
+ .text          0x00000000c0102d41      0x525 ./entry/pm.o
+                0x00000000c0102d41                gdt_set_gate
+                0x00000000c0102dae                init_gdt
+                0x00000000c0102e8a                idt_set_gate
+                0x00000000c0102ef2                init_idt
+ .text          0x00000000c0103266      0x714 ./entry/syscall.o
+                0x00000000c0103266                do_timer
+                0x00000000c01032d0                sys_alarm
+                0x00000000c0103339                sys_getpid
+                0x00000000c0103349                sys_getppid
+                0x00000000c0103359                sys_getuid
+                0x00000000c010336d                sys_geteuid
+                0x00000000c0103381                sys_getgid
+                0x00000000c0103395                sys_getegid
+                0x00000000c01033a9                sys_nice
+                0x00000000c01033d6                sys_setup
+                0x00000000c01033e0                sys_exit
+                0x00000000c01033ea                sys_read
+                0x00000000c01033f4                sys_write
+                0x00000000c01033fe                sys_open
+                0x00000000c0103408                sys_close
+                0x00000000c0103412                sys_waitpid
+                0x00000000c010341c                sys_creat
+                0x00000000c0103426                sys_link
+                0x00000000c0103430                sys_unlink
+                0x00000000c010343a                sys_chdir
+                0x00000000c0103444                sys_mknod
+                0x00000000c010344e                sys_chmod
+                0x00000000c0103458                sys_chown
+                0x00000000c0103462                sys_stat
+                0x00000000c010346c                sys_lseek
+                0x00000000c0103476                sys_mount
+                0x00000000c0103480                sys_umount
+                0x00000000c010348a                sys_fstat
+                0x00000000c0103494                sys_pause
+                0x00000000c010349e                sys_utime
+                0x00000000c01034a8                sys_access
+                0x00000000c01034b2                sys_sync
+                0x00000000c01034bc                sys_kill
+                0x00000000c01034c6                sys_mkdir
+                0x00000000c01034d0                sys_rmdir
+                0x00000000c01034da                sys_dup
+                0x00000000c01034e4                sys_pipe
+                0x00000000c01034ee                sys_signal
+                0x00000000c01034f8                sys_ioctl
+                0x00000000c0103502                sys_fcntl
+                0x00000000c010350c                sys_chroot
+                0x00000000c0103516                sys_ustat
+                0x00000000c0103520                sys_dup2
+                0x00000000c010352a                sys_sigaction
+                0x00000000c0103534                sys_sgetmask
+                0x00000000c010353e                sys_ssetmask
+                0x00000000c0103548                do_signal
+                0x00000000c010354e                math_error
+                0x00000000c0103554                math_state_restore
+                0x00000000c010355a                math_emulate
+                0x00000000c010358d                do_execve
+                0x00000000c0103597                unexpected_hd_interrupt
+                0x00000000c01035b0                unexpected_floppy_interrupt
+                0x00000000c01035b6                sys_ftime
+                0x00000000c01035c0                sys_break
+                0x00000000c01035ca                sys_ptrace
+                0x00000000c01035d4                sys_stty
+                0x00000000c01035de                sys_gtty
+                0x00000000c01035e8                sys_rename
+                0x00000000c01035f2                sys_prof
+                0x00000000c01035fc                sys_setregid
+                0x00000000c0103692                sys_setgid
+                0x00000000c01036a5                sys_acct
+                0x00000000c01036af                sys_phys
+                0x00000000c01036b9                sys_lock
+                0x00000000c01036c3                sys_mpx
+                0x00000000c01036cd                sys_ulimit
+                0x00000000c01036d7                sys_time
+                0x00000000c01036e9                sys_setreuid
+                0x00000000c010378b                sys_setuid
+                0x00000000c010379e                sys_stime
+                0x00000000c01037a8                sys_times
+                0x00000000c01037b2                sys_brk
+                0x00000000c01037f5                sys_setpgid
+                0x00000000c01038c2                sys_getpgrp
+                0x00000000c01038d2                sys_setsid
+                0x00000000c010393f                sys_uname
+                0x00000000c0103949                sys_umask
+ .text          0x00000000c010397a      0x3ed ./entry/trap_gate.o
+                0x00000000c0103af6                do_double_fault
+                0x00000000c0103b15                do_general_protection
+                0x00000000c0103b34                do_divide_error
+                0x00000000c0103b53                do_int3
+                0x00000000c0103be2                do_nmi
+                0x00000000c0103c01                do_debug
+                0x00000000c0103c20                do_overflow
+                0x00000000c0103c3f                do_bounds
+                0x00000000c0103c5e                do_invalid_op
+                0x00000000c0103c7d                do_device_not_available
+                0x00000000c0103c9c                do_coprocessor_segment_overrun
+                0x00000000c0103cbb                do_invalid_TSS
+                0x00000000c0103cda                do_segment_not_present
+                0x00000000c0103cf9                do_stack_segment
+                0x00000000c0103d18                do_coprocessor_error
+                0x00000000c0103d48                do_reserved
+ .text          0x00000000c0103d67       0x25 ./init/init.o
+                0x00000000c0103d67                init
+ .text          0x00000000c0103d8c        0x0 ./IPC/mmap.o
+ .text          0x00000000c0103d8c        0x0 ./IPC/msg_qeue.o
+ .text          0x00000000c0103d8c        0x0 ./IPC/pipe.o
+ .text          0x00000000c0103d8c        0x0 ./IPC/signal.o
+ .text          0x00000000c0103d8c        0x0 ./lib/common.o
+ .text          0x00000000c0103d8c      0xc71 ./lib/console.o
+                0x00000000c0103e96                clear_screen
+                0x00000000c0103eed                show_char
+                0x00000000c0103f10                show_char_color
+                0x00000000c0104024                show_string
+                0x00000000c0104052                show_string_color
+                0x00000000c0104080                itoa
+                0x00000000c01041ae                show_hex_num
+                0x00000000c0104201                show_hex_num_color
+                0x00000000c0104249                show_dec_num
+                0x00000000c010428e                show_dec_num_color
+                0x00000000c010455f                vsprintf
+                0x00000000c010498c                sprintf
+                0x00000000c01049b5                printf
+ .text          0x00000000c01049fd        0x0 ./lib/io.o
+ .text          0x00000000c01049fd        0x0 ./lib/list.o
+ .text          0x00000000c01049fd       0x43 ./lib/logging.o
+                0x00000000c01049fd                logging
+ .text          0x00000000c0104a40      0x3ea ./lib/string.o
+                0x00000000c0104aa4                memcmp
+                0x00000000c0104ae4                memset
+                0x00000000c0104b14                strcmp
+                0x00000000c0104b76                strncmp
+                0x00000000c0104bd6                strnlen
+                0x00000000c0104c08                atou
+                0x00000000c0104ca2                simple_strtoull
+                0x00000000c0104da2                strlen
+                0x00000000c0104dca                strstr
+ .text          0x00000000c0104e2a      0x6dc ./mm/heap.o
+                0x00000000c0104e2a                init_heap
+                0x00000000c0104e95                kmalloc
+                0x00000000c0104f7f                kfree
+                0x00000000c01053a3                test_heap
+                0x00000000c01054d9                malloc
+                0x00000000c01054ef                free
+ .text          0x00000000c0105506      0x90c ./mm/memory.o
+                0x00000000c0105506                show_mem_map
+                0x00000000c0105590                init_pmm
+                0x00000000c01056ec                free_page
+                0x00000000c0105755                alloc_page
+                0x00000000c01057bf                do_no_page
+                0x00000000c01057fa                un_wp_page
+                0x00000000c01058de                do_wp_page
+                0x00000000c0105941                get_virt_page
+                0x00000000c0105966                free_virt_page
+                0x00000000c0105983                init_vmm
+                0x00000000c0105a64                map
+                0x00000000c0105b0c                unmap
+                0x00000000c0105b73                get_mapping
+                0x00000000c0105c07                copy_page_tables
+                0x00000000c0105d81                free_page_tables
+ .text          0x00000000c0105e12      0x2af ./task/sched.o
+                0x00000000c0105e12                show_task
+                0x00000000c0105e82                show_stat
+                0x00000000c0105ec5                schedule
+                0x00000000c0105fdf                sched_init
+                0x00000000c0107000                . = ALIGN (0x1000)
+ *fill*         0x00000000c01060c1      0xf3f 
 
-.iplt           0x00000000c0106000        0x0 加载地址 0x0000000000106000
- .iplt          0x00000000c0106000        0x0 ./boot/boot.o
+.iplt           0x00000000c0107000        0x0 加载地址 0x0000000000107000
+ .iplt          0x00000000c0107000        0x0 ./boot/boot.o
 
-.rel.dyn        0x00000000c0106000        0x0 加载地址 0x0000000000106000
- .rel.iplt      0x00000000c0106000        0x0 ./boot/boot.o
+.rel.dyn        0x00000000c0107000        0x0 加载地址 0x0000000000107000
+ .rel.iplt      0x00000000c0107000        0x0 ./boot/boot.o
  .rel.init.text
-                0x00000000c0106000        0x0 ./boot/boot.o
- .rel.text      0x00000000c0106000        0x0 ./boot/boot.o
+                0x00000000c0107000        0x0 ./boot/boot.o
+ .rel.text      0x00000000c0107000        0x0 ./boot/boot.o
 
-.data           0x00000000c0106000     0x2000 加载地址 0x0000000000106000
+.data           0x00000000c0107000     0x2000 加载地址 0x0000000000107000
  *(.data)
- .data          0x00000000c0106000        0x0 ./driver/hd.o
- .data          0x00000000c0106000        0x0 ./driver/io.o
- .data          0x00000000c0106000        0x0 ./driver/timer.o
- .data          0x00000000c0106000        0x0 ./entry/errorno.o
- .data          0x00000000c0106000        0x0 ./entry/fork.o
- .data          0x00000000c0106000        0x0 ./entry/kern_debug.o
- .data          0x00000000c0106000        0x0 ./entry/main.o
- .data          0x00000000c0106000        0x0 ./entry/pm.o
- .data          0x00000000c0106000      0x120 ./entry/syscall.o
-                0x00000000c0106000                sys_call_table
- .data          0x00000000c0106120        0x0 ./entry/trap_gate.o
- .data          0x00000000c0106120        0x0 ./init/init.o
- .data          0x00000000c0106120        0x0 ./IPC/mmap.o
- .data          0x00000000c0106120        0x0 ./IPC/msg_qeue.o
- .data          0x00000000c0106120        0x0 ./IPC/pipe.o
- .data          0x00000000c0106120        0x0 ./IPC/signal.o
- .data          0x00000000c0106120        0x0 ./lib/common.o
- .data          0x00000000c0106120        0x4 ./lib/console.o
- .data          0x00000000c0106124        0x0 ./lib/io.o
- .data          0x00000000c0106124        0x0 ./lib/list.o
- .data          0x00000000c0106124        0x0 ./lib/logging.o
- .data          0x00000000c0106124        0x0 ./lib/string.o
- .data          0x00000000c0106124        0x4 ./mm/heap.o
- .data          0x00000000c0106128        0x0 ./mm/memory.o
- *fill*         0x00000000c0106128       0x18 
- .data          0x00000000c0106140     0x1180 ./task/sched.o
-                0x00000000c0107140                tss
-                0x00000000c01071a8                current
-                0x00000000c01071c0                task
+ .data          0x00000000c0107000        0x0 ./driver/hd.o
+ .data          0x00000000c0107000        0x0 ./driver/io.o
+ .data          0x00000000c0107000        0x0 ./driver/timer.o
+ .data          0x00000000c0107000        0x0 ./entry/errorno.o
+ .data          0x00000000c0107000        0x0 ./entry/fork.o
+ .data          0x00000000c0107000        0x0 ./entry/kern_debug.o
+ .data          0x00000000c0107000        0x0 ./entry/main.o
+ .data          0x00000000c0107000        0x0 ./entry/pm.o
+ .data          0x00000000c0107000      0x120 ./entry/syscall.o
+                0x00000000c0107000                sys_call_table
+ .data          0x00000000c0107120        0x0 ./entry/trap_gate.o
+ .data          0x00000000c0107120        0x0 ./init/init.o
+ .data          0x00000000c0107120        0x0 ./IPC/mmap.o
+ .data          0x00000000c0107120        0x0 ./IPC/msg_qeue.o
+ .data          0x00000000c0107120        0x0 ./IPC/pipe.o
+ .data          0x00000000c0107120        0x0 ./IPC/signal.o
+ .data          0x00000000c0107120        0x0 ./lib/common.o
+ .data          0x00000000c0107120        0x4 ./lib/console.o
+ .data          0x00000000c0107124        0x0 ./lib/io.o
+ .data          0x00000000c0107124        0x0 ./lib/list.o
+ .data          0x00000000c0107124        0x0 ./lib/logging.o
+ .data          0x00000000c0107124        0x0 ./lib/string.o
+ .data          0x00000000c0107124        0x4 ./mm/heap.o
+ .data          0x00000000c0107128        0x0 ./mm/memory.o
+ *fill*         0x00000000c0107128       0x18 
+ .data          0x00000000c0107140     0x1180 ./task/sched.o
+                0x00000000c0108140                tss
+                0x00000000c01081a8                current
+                0x00000000c01081c0                task
  *(.rodata)
- .rodata        0x00000000c01072c0       0x12 ./driver/hd.o
- *fill*         0x00000000c01072d2        0x2 
- .rodata        0x00000000c01072d4       0x38 ./driver/timer.o
- .rodata        0x00000000c010730c       0x94 ./entry/kern_debug.o
- .rodata        0x00000000c01073a0       0x56 ./entry/main.o
- .rodata        0x00000000c01073f6       0x13 ./entry/pm.o
- .rodata        0x00000000c0107409       0x1a ./entry/syscall.o
- *fill*         0x00000000c0107423        0x1 
- .rodata        0x00000000c0107424      0x1e7 ./entry/trap_gate.o
- .rodata        0x00000000c010760b       0x18 ./init/init.o
- *fill*         0x00000000c0107623        0x1 
- .rodata        0x00000000c0107624      0x1a4 ./lib/console.o
- .rodata        0x00000000c01077c8       0xc8 ./mm/heap.o
- .rodata        0x00000000c0107890       0xf0 ./mm/memory.o
- .rodata        0x00000000c0107980       0x63 ./task/sched.o
-                0x00000000c0108000                . = ALIGN (0x1000)
- *fill*         0x00000000c01079e3      0x61d 
-
-.igot.plt       0x00000000c0108000        0x0 加载地址 0x0000000000108000
- .igot.plt      0x00000000c0108000        0x0 ./boot/boot.o
-
-.bss            0x00000000c0108000     0x3038 加载地址 0x0000000000108000
- *(.bss)
- .bss           0x00000000c0108000        0x0 ./driver/hd.o
- .bss           0x00000000c0108000        0x0 ./driver/io.o
- .bss           0x00000000c0108000        0x0 ./driver/timer.o
- .bss           0x00000000c0108000        0x0 ./entry/errorno.o
- .bss           0x00000000c0108000        0x4 ./entry/fork.o
-                0x00000000c0108000                last_pid
- .bss           0x00000000c0108004       0x14 ./entry/kern_debug.o
- .bss           0x00000000c0108018        0x0 ./entry/main.o
- *fill*         0x00000000c0108018        0x8 
- .bss           0x00000000c0108020      0x900 ./entry/pm.o
-                0x00000000c0108020                gdt_entry
-                0x00000000c0108120                idt_entry
- .bss           0x00000000c0108920        0x0 ./entry/syscall.o
- .bss           0x00000000c0108920        0x0 ./entry/trap_gate.o
- .bss           0x00000000c0108920        0x0 ./init/init.o
- .bss           0x00000000c0108920        0x0 ./IPC/mmap.o
- .bss           0x00000000c0108920        0x0 ./IPC/msg_qeue.o
- .bss           0x00000000c0108920        0x0 ./IPC/pipe.o
- .bss           0x00000000c0108920        0x0 ./IPC/signal.o
- .bss           0x00000000c0108920        0x0 ./lib/common.o
- .bss           0x00000000c0108920        0x2 ./lib/console.o
- .bss           0x00000000c0108922        0x0 ./lib/io.o
- .bss           0x00000000c0108922        0x0 ./lib/list.o
- .bss           0x00000000c0108922        0x0 ./lib/logging.o
- .bss           0x00000000c0108922        0x0 ./lib/string.o
- *fill*         0x00000000c0108922        0x2 
- .bss           0x00000000c0108924        0x8 ./mm/heap.o
- .bss           0x00000000c010892c       0x14 ./mm/memory.o
-                0x00000000c010892c                page_count
-                0x00000000c0108930                end_addr
-                0x00000000c0108934                start_addr
-                0x00000000c0108938                pdt
- .bss           0x00000000c0108940        0x4 ./task/sched.o
-                0x00000000c0108940                last_task_used_math
+ .rodata        0x00000000c01082c0       0x24 ./driver/hd.o
+ .rodata        0x00000000c01082e4       0x38 ./driver/timer.o
+ .rodata        0x00000000c010831c       0x94 ./entry/kern_debug.o
+ .rodata        0x00000000c01083b0       0x56 ./entry/main.o
+ .rodata        0x00000000c0108406       0x13 ./entry/pm.o
+ .rodata        0x00000000c0108419       0x1a ./entry/syscall.o
+ *fill*         0x00000000c0108433        0x1 
+ .rodata        0x00000000c0108434      0x1e7 ./entry/trap_gate.o
+ .rodata        0x00000000c010861b       0x18 ./init/init.o
+ *fill*         0x00000000c0108633        0x1 
+ .rodata        0x00000000c0108634      0x1a4 ./lib/console.o
+ .rodata        0x00000000c01087d8       0xc8 ./mm/heap.o
+ .rodata        0x00000000c01088a0       0xf0 ./mm/memory.o
+ .rodata        0x00000000c0108990       0x63 ./task/sched.o
                 0x00000000c0109000                . = ALIGN (0x1000)
- *fill*         0x00000000c0108944      0x6bc 
- COMMON         0x00000000c0109000        0x4 ./entry/errorno.o
-                0x00000000c0109000                errno
- *fill*         0x00000000c0109004        0xc 
- COMMON         0x00000000c0109010     0x2010 ./entry/main.o
-                0x00000000c0109010                user_stack_top
-                0x00000000c0109020                user_stack
- COMMON         0x00000000c010b020        0x8 ./entry/syscall.o
-                0x00000000c010b020                do_hd
-                0x00000000c010b024                do_floppy
- COMMON         0x00000000c010b028        0x4 ./mm/heap.o
-                0x00000000c010b028                current_pdt
- COMMON         0x00000000c010b02c        0x4 ./mm/memory.o
-                0x00000000c010b02c                glb_mboot_ptr
- COMMON         0x00000000c010b030        0x8 ./task/sched.o
-                0x00000000c010b030                startup_time
-                0x00000000c010b034                jiffies
+ *fill*         0x00000000c01089f3      0x60d 
 
-.stab           0x00000000c010b038     0xbfc8 加载地址 0x000000000010b038
+.igot.plt       0x00000000c0109000        0x0 加载地址 0x0000000000109000
+ .igot.plt      0x00000000c0109000        0x0 ./boot/boot.o
+
+.bss            0x00000000c0109000     0x3038 加载地址 0x0000000000109000
+ *(.bss)
+ .bss           0x00000000c0109000        0x0 ./driver/hd.o
+ .bss           0x00000000c0109000        0x0 ./driver/io.o
+ .bss           0x00000000c0109000        0x0 ./driver/timer.o
+ .bss           0x00000000c0109000        0x0 ./entry/errorno.o
+ .bss           0x00000000c0109000        0x4 ./entry/fork.o
+                0x00000000c0109000                last_pid
+ .bss           0x00000000c0109004       0x14 ./entry/kern_debug.o
+ .bss           0x00000000c0109018        0x0 ./entry/main.o
+ *fill*         0x00000000c0109018        0x8 
+ .bss           0x00000000c0109020      0x900 ./entry/pm.o
+                0x00000000c0109020                gdt_entry
+                0x00000000c0109120                idt_entry
+ .bss           0x00000000c0109920        0x0 ./entry/syscall.o
+ .bss           0x00000000c0109920        0x0 ./entry/trap_gate.o
+ .bss           0x00000000c0109920        0x0 ./init/init.o
+ .bss           0x00000000c0109920        0x0 ./IPC/mmap.o
+ .bss           0x00000000c0109920        0x0 ./IPC/msg_qeue.o
+ .bss           0x00000000c0109920        0x0 ./IPC/pipe.o
+ .bss           0x00000000c0109920        0x0 ./IPC/signal.o
+ .bss           0x00000000c0109920        0x0 ./lib/common.o
+ .bss           0x00000000c0109920        0x2 ./lib/console.o
+ .bss           0x00000000c0109922        0x0 ./lib/io.o
+ .bss           0x00000000c0109922        0x0 ./lib/list.o
+ .bss           0x00000000c0109922        0x0 ./lib/logging.o
+ .bss           0x00000000c0109922        0x0 ./lib/string.o
+ *fill*         0x00000000c0109922        0x2 
+ .bss           0x00000000c0109924        0x8 ./mm/heap.o
+ .bss           0x00000000c010992c       0x14 ./mm/memory.o
+                0x00000000c010992c                page_count
+                0x00000000c0109930                end_addr
+                0x00000000c0109934                start_addr
+                0x00000000c0109938                pdt
+ .bss           0x00000000c0109940        0x4 ./task/sched.o
+                0x00000000c0109940                last_task_used_math
+                0x00000000c010a000                . = ALIGN (0x1000)
+ *fill*         0x00000000c0109944      0x6bc 
+ COMMON         0x00000000c010a000        0x4 ./entry/errorno.o
+                0x00000000c010a000                errno
+ *fill*         0x00000000c010a004        0xc 
+ COMMON         0x00000000c010a010     0x2010 ./entry/main.o
+                0x00000000c010a010                user_stack_top
+                0x00000000c010a020                user_stack
+ COMMON         0x00000000c010c020        0x8 ./entry/syscall.o
+                0x00000000c010c020                do_hd
+                0x00000000c010c024                do_floppy
+ COMMON         0x00000000c010c028        0x4 ./mm/heap.o
+                0x00000000c010c028                current_pdt
+ COMMON         0x00000000c010c02c        0x4 ./mm/memory.o
+                0x00000000c010c02c                glb_mboot_ptr
+ COMMON         0x00000000c010c030        0x8 ./task/sched.o
+                0x00000000c010c030                startup_time
+                0x00000000c010c034                jiffies
+
+.stab           0x00000000c010c038     0xbfc8 加载地址 0x000000000010c038
  *(.stab)
- .stab          0x00000000c010b038        0xc ./boot/boot.o
- .stab          0x00000000c010b044       0x90 ./entry/gdt_s.o
+ .stab          0x00000000c010c038        0xc ./boot/boot.o
+ .stab          0x00000000c010c044       0x90 ./entry/gdt_s.o
                                          0x9c (松开之前的大小)
- .stab          0x00000000c010b0d4      0x8dc ./entry/sys_call.o
+ .stab          0x00000000c010c0d4      0x8dc ./entry/sys_call.o
                                         0x8e8 (松开之前的大小)
- .stab          0x00000000c010b9b0      0x498 ./entry/traps.o
+ .stab          0x00000000c010c9b0      0x498 ./entry/traps.o
                                         0x4a4 (松开之前的大小)
- .stab          0x00000000c010be48      0x150 ./mm/page.o
+ .stab          0x00000000c010ce48      0x150 ./mm/page.o
                                         0x15c (松开之前的大小)
- .stab          0x00000000c010bf98      0x45c ./driver/hd.o
-                                        0x468 (松开之前的大小)
- .stab          0x00000000c010c3f4      0x12c ./driver/io.o
+ .stab          0x00000000c010cf98      0x72c ./driver/hd.o
+                                        0x738 (松开之前的大小)
+ .stab          0x00000000c010d6c4      0x12c ./driver/io.o
                                         0x240 (松开之前的大小)
- .stab          0x00000000c010c520      0x3cc ./driver/timer.o
+ .stab          0x00000000c010d7f0      0x3cc ./driver/timer.o
                                         0x588 (松开之前的大小)
- .stab          0x00000000c010c8ec      0x12c ./entry/errorno.o
+ .stab          0x00000000c010dbbc      0x12c ./entry/errorno.o
                                         0x138 (松开之前的大小)
- .stab          0x00000000c010ca18      0x780 ./entry/fork.o
+ .stab          0x00000000c010dce8      0x780 ./entry/fork.o
                                         0xa14 (松开之前的大小)
- .stab          0x00000000c010d198      0x690 ./entry/kern_debug.o
+ .stab          0x00000000c010e468      0x690 ./entry/kern_debug.o
                                         0x834 (松开之前的大小)
- .stab          0x00000000c010d828      0x5d0 ./entry/main.o
-                                        0x888 (松开之前的大小)
- .stab          0x00000000c010ddf8      0x6a8 ./entry/pm.o
+ .stab          0x00000000c010eaf8      0x5dc ./entry/main.o
+                                        0x8b8 (松开之前的大小)
+ .stab          0x00000000c010f0d4      0x6a8 ./entry/pm.o
                                         0x864 (松开之前的大小)
- .stab          0x00000000c010e4a0     0x2190 ./entry/syscall.o
+ .stab          0x00000000c010f77c     0x2190 ./entry/syscall.o
                                        0x2430 (松开之前的大小)
- .stab          0x00000000c0110630      0xaf8 ./entry/trap_gate.o
+ .stab          0x00000000c011190c      0xaf8 ./entry/trap_gate.o
                                         0xd98 (松开之前的大小)
- .stab          0x00000000c0111128      0x1d4 ./init/init.o
+ .stab          0x00000000c0112404      0x1d4 ./init/init.o
                                         0x474 (松开之前的大小)
- .stab          0x00000000c01112fc      0x120 ./IPC/mmap.o
+ .stab          0x00000000c01125d8      0x120 ./IPC/mmap.o
                                         0x12c (松开之前的大小)
- .stab          0x00000000c011141c      0x120 ./IPC/msg_qeue.o
+ .stab          0x00000000c01126f8      0x120 ./IPC/msg_qeue.o
                                         0x12c (松开之前的大小)
- .stab          0x00000000c011153c      0x120 ./IPC/pipe.o
+ .stab          0x00000000c0112818      0x120 ./IPC/pipe.o
                                         0x12c (松开之前的大小)
- .stab          0x00000000c011165c      0x120 ./IPC/signal.o
+ .stab          0x00000000c0112938      0x120 ./IPC/signal.o
                                         0x12c (松开之前的大小)
- .stab          0x00000000c011177c      0x144 ./lib/common.o
+ .stab          0x00000000c0112a58      0x144 ./lib/common.o
                                         0x258 (松开之前的大小)
- .stab          0x00000000c01118c0     0x1908 ./lib/console.o
+ .stab          0x00000000c0112b9c     0x1908 ./lib/console.o
                                        0x1aac (松开之前的大小)
- .stab          0x00000000c01131c8      0x12c ./lib/io.o
+ .stab          0x00000000c01144a4      0x12c ./lib/io.o
                                         0x240 (松开之前的大小)
- .stab          0x00000000c01132f4      0x150 ./lib/list.o
+ .stab          0x00000000c01145d0      0x150 ./lib/list.o
                                         0x318 (松开之前的大小)
- .stab          0x00000000c0113444      0x1e0 ./lib/logging.o
+ .stab          0x00000000c0114720      0x1e0 ./lib/logging.o
                                         0x324 (松开之前的大小)
- .stab          0x00000000c0113624      0xc18 ./lib/string.o
+ .stab          0x00000000c0114900      0xc18 ./lib/string.o
                                         0xd2c (松开之前的大小)
- .stab          0x00000000c011423c      0xcd8 ./mm/heap.o
+ .stab          0x00000000c0115518      0xcd8 ./mm/heap.o
                                         0xed0 (松开之前的大小)
- .stab          0x00000000c0114f14     0x126c ./mm/memory.o
+ .stab          0x00000000c01161f0     0x126c ./mm/memory.o
                                        0x15b4 (松开之前的大小)
- .stab          0x00000000c0116180      0x5e8 ./task/sched.o
+ .stab          0x00000000c011745c      0x5e8 ./task/sched.o
                                         0x8ac (松开之前的大小)
-                0x00000000c0117000                . = ALIGN (0x1000)
- *fill*         0x00000000c0116768      0x898 
+                0x00000000c0118000                . = ALIGN (0x1000)
+ *fill*         0x00000000c0117a44      0x5bc 
 
 .note.GNU-stack
                 0x0000000000000000        0x0
@@ -541,12 +544,12 @@ do_floppy           0x4               ./entry/syscall.o
  .note.GNU-stack
                 0x0000000000000000        0x0 ./task/sched.o
 
-.stabstr        0x00000000c0117000     0x5000 加载地址 0x0000000000117000
+.stabstr        0x00000000c0118000     0x5000 加载地址 0x0000000000118000
  *(.stabstr)
- .stabstr       0x00000000c0117000     0x415d ./boot/boot.o
-                0x00000000c011c000                . = ALIGN (0x1000)
- *fill*         0x00000000c011b15d      0xea3 
-                0x00000000c011c000                PROVIDE (kern_end, .)
+ .stabstr       0x00000000c0118000     0x42b6 ./boot/boot.o
+                0x00000000c011d000                . = ALIGN (0x1000)
+ *fill*         0x00000000c011c2b6      0xd4a 
+                0x00000000c011d000                PROVIDE (kern_end, .)
 
 /DISCARD/
  *(.comment)
