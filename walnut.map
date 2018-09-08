@@ -25,7 +25,7 @@ do_floppy           0x4               ./entry/syscall.o
  .comment       0x0000000000000000       0x36 ./entry/kern_debug.o
  .eh_frame      0x0000000000000000       0xdc ./entry/kern_debug.o
  .comment       0x0000000000000000       0x36 ./entry/main.o
- .eh_frame      0x0000000000000000       0x68 ./entry/main.o
+ .eh_frame      0x0000000000000000       0x64 ./entry/main.o
  .comment       0x0000000000000000       0x36 ./entry/pm.o
  .eh_frame      0x0000000000000000       0xa0 ./entry/pm.o
  .comment       0x0000000000000000       0x36 ./entry/syscall.o
@@ -146,174 +146,174 @@ do_floppy           0x4               ./entry/syscall.o
                 0x00000000c0102b0c                print_cur_status
                 0x00000000c0102bc9                panic
                 0x00000000c0102bfa                print_stack_trace
- .text          0x00000000c0102c4d       0xf4 ./entry/main.o
+ .text          0x00000000c0102c4d       0xff ./entry/main.o
                 0x00000000c0102c4d                entry_kernel
- .text          0x00000000c0102d41      0x525 ./entry/pm.o
-                0x00000000c0102d41                gdt_set_gate
-                0x00000000c0102dae                init_gdt
-                0x00000000c0102e8a                idt_set_gate
-                0x00000000c0102ef2                init_idt
- .text          0x00000000c0103266      0x714 ./entry/syscall.o
-                0x00000000c0103266                do_timer
-                0x00000000c01032d0                sys_alarm
-                0x00000000c0103339                sys_getpid
-                0x00000000c0103349                sys_getppid
-                0x00000000c0103359                sys_getuid
-                0x00000000c010336d                sys_geteuid
-                0x00000000c0103381                sys_getgid
-                0x00000000c0103395                sys_getegid
-                0x00000000c01033a9                sys_nice
-                0x00000000c01033d6                sys_setup
-                0x00000000c01033e0                sys_exit
-                0x00000000c01033ea                sys_read
-                0x00000000c01033f4                sys_write
-                0x00000000c01033fe                sys_open
-                0x00000000c0103408                sys_close
-                0x00000000c0103412                sys_waitpid
-                0x00000000c010341c                sys_creat
-                0x00000000c0103426                sys_link
-                0x00000000c0103430                sys_unlink
-                0x00000000c010343a                sys_chdir
-                0x00000000c0103444                sys_mknod
-                0x00000000c010344e                sys_chmod
-                0x00000000c0103458                sys_chown
-                0x00000000c0103462                sys_stat
-                0x00000000c010346c                sys_lseek
-                0x00000000c0103476                sys_mount
-                0x00000000c0103480                sys_umount
-                0x00000000c010348a                sys_fstat
-                0x00000000c0103494                sys_pause
-                0x00000000c010349e                sys_utime
-                0x00000000c01034a8                sys_access
-                0x00000000c01034b2                sys_sync
-                0x00000000c01034bc                sys_kill
-                0x00000000c01034c6                sys_mkdir
-                0x00000000c01034d0                sys_rmdir
-                0x00000000c01034da                sys_dup
-                0x00000000c01034e4                sys_pipe
-                0x00000000c01034ee                sys_signal
-                0x00000000c01034f8                sys_ioctl
-                0x00000000c0103502                sys_fcntl
-                0x00000000c010350c                sys_chroot
-                0x00000000c0103516                sys_ustat
-                0x00000000c0103520                sys_dup2
-                0x00000000c010352a                sys_sigaction
-                0x00000000c0103534                sys_sgetmask
-                0x00000000c010353e                sys_ssetmask
-                0x00000000c0103548                do_signal
-                0x00000000c010354e                math_error
-                0x00000000c0103554                math_state_restore
-                0x00000000c010355a                math_emulate
-                0x00000000c010358d                do_execve
-                0x00000000c0103597                unexpected_hd_interrupt
-                0x00000000c01035b0                unexpected_floppy_interrupt
-                0x00000000c01035b6                sys_ftime
-                0x00000000c01035c0                sys_break
-                0x00000000c01035ca                sys_ptrace
-                0x00000000c01035d4                sys_stty
-                0x00000000c01035de                sys_gtty
-                0x00000000c01035e8                sys_rename
-                0x00000000c01035f2                sys_prof
-                0x00000000c01035fc                sys_setregid
-                0x00000000c0103692                sys_setgid
-                0x00000000c01036a5                sys_acct
-                0x00000000c01036af                sys_phys
-                0x00000000c01036b9                sys_lock
-                0x00000000c01036c3                sys_mpx
-                0x00000000c01036cd                sys_ulimit
-                0x00000000c01036d7                sys_time
-                0x00000000c01036e9                sys_setreuid
-                0x00000000c010378b                sys_setuid
-                0x00000000c010379e                sys_stime
-                0x00000000c01037a8                sys_times
-                0x00000000c01037b2                sys_brk
-                0x00000000c01037f5                sys_setpgid
-                0x00000000c01038c2                sys_getpgrp
-                0x00000000c01038d2                sys_setsid
-                0x00000000c010393f                sys_uname
-                0x00000000c0103949                sys_umask
- .text          0x00000000c010397a      0x3ed ./entry/trap_gate.o
-                0x00000000c0103af6                do_double_fault
-                0x00000000c0103b15                do_general_protection
-                0x00000000c0103b34                do_divide_error
-                0x00000000c0103b53                do_int3
-                0x00000000c0103be2                do_nmi
-                0x00000000c0103c01                do_debug
-                0x00000000c0103c20                do_overflow
-                0x00000000c0103c3f                do_bounds
-                0x00000000c0103c5e                do_invalid_op
-                0x00000000c0103c7d                do_device_not_available
-                0x00000000c0103c9c                do_coprocessor_segment_overrun
-                0x00000000c0103cbb                do_invalid_TSS
-                0x00000000c0103cda                do_segment_not_present
-                0x00000000c0103cf9                do_stack_segment
-                0x00000000c0103d18                do_coprocessor_error
-                0x00000000c0103d48                do_reserved
- .text          0x00000000c0103d67       0x25 ./init/init.o
-                0x00000000c0103d67                init
- .text          0x00000000c0103d8c        0x0 ./IPC/mmap.o
- .text          0x00000000c0103d8c        0x0 ./IPC/msg_qeue.o
- .text          0x00000000c0103d8c        0x0 ./IPC/pipe.o
- .text          0x00000000c0103d8c        0x0 ./IPC/signal.o
- .text          0x00000000c0103d8c        0x0 ./lib/common.o
- .text          0x00000000c0103d8c      0xc71 ./lib/console.o
-                0x00000000c0103e96                clear_screen
-                0x00000000c0103eed                show_char
-                0x00000000c0103f10                show_char_color
-                0x00000000c0104024                show_string
-                0x00000000c0104052                show_string_color
-                0x00000000c0104080                itoa
-                0x00000000c01041ae                show_hex_num
-                0x00000000c0104201                show_hex_num_color
-                0x00000000c0104249                show_dec_num
-                0x00000000c010428e                show_dec_num_color
-                0x00000000c010455f                vsprintf
-                0x00000000c010498c                sprintf
-                0x00000000c01049b5                printf
- .text          0x00000000c01049fd        0x0 ./lib/io.o
- .text          0x00000000c01049fd        0x0 ./lib/list.o
- .text          0x00000000c01049fd       0x43 ./lib/logging.o
-                0x00000000c01049fd                logging
- .text          0x00000000c0104a40      0x3ea ./lib/string.o
-                0x00000000c0104aa4                memcmp
-                0x00000000c0104ae4                memset
-                0x00000000c0104b14                strcmp
-                0x00000000c0104b76                strncmp
-                0x00000000c0104bd6                strnlen
-                0x00000000c0104c08                atou
-                0x00000000c0104ca2                simple_strtoull
-                0x00000000c0104da2                strlen
-                0x00000000c0104dca                strstr
- .text          0x00000000c0104e2a      0x6dc ./mm/heap.o
-                0x00000000c0104e2a                init_heap
-                0x00000000c0104e95                kmalloc
-                0x00000000c0104f7f                kfree
-                0x00000000c01053a3                test_heap
-                0x00000000c01054d9                malloc
-                0x00000000c01054ef                free
- .text          0x00000000c0105506      0x90c ./mm/memory.o
-                0x00000000c0105506                show_mem_map
-                0x00000000c0105590                init_pmm
-                0x00000000c01056ec                free_page
-                0x00000000c0105755                alloc_page
-                0x00000000c01057bf                do_no_page
-                0x00000000c01057fa                un_wp_page
-                0x00000000c01058de                do_wp_page
-                0x00000000c0105941                get_virt_page
-                0x00000000c0105966                free_virt_page
-                0x00000000c0105983                init_vmm
-                0x00000000c0105a64                map
-                0x00000000c0105b0c                unmap
-                0x00000000c0105b73                get_mapping
-                0x00000000c0105c07                copy_page_tables
-                0x00000000c0105d81                free_page_tables
- .text          0x00000000c0105e12      0x2af ./task/sched.o
-                0x00000000c0105e12                show_task
-                0x00000000c0105e82                show_stat
-                0x00000000c0105ec5                schedule
-                0x00000000c0105fdf                sched_init
+ .text          0x00000000c0102d4c      0x525 ./entry/pm.o
+                0x00000000c0102d4c                gdt_set_gate
+                0x00000000c0102db9                init_gdt
+                0x00000000c0102e95                idt_set_gate
+                0x00000000c0102efd                init_idt
+ .text          0x00000000c0103271      0x714 ./entry/syscall.o
+                0x00000000c0103271                do_timer
+                0x00000000c01032db                sys_alarm
+                0x00000000c0103344                sys_getpid
+                0x00000000c0103354                sys_getppid
+                0x00000000c0103364                sys_getuid
+                0x00000000c0103378                sys_geteuid
+                0x00000000c010338c                sys_getgid
+                0x00000000c01033a0                sys_getegid
+                0x00000000c01033b4                sys_nice
+                0x00000000c01033e1                sys_setup
+                0x00000000c01033eb                sys_exit
+                0x00000000c01033f5                sys_read
+                0x00000000c01033ff                sys_write
+                0x00000000c0103409                sys_open
+                0x00000000c0103413                sys_close
+                0x00000000c010341d                sys_waitpid
+                0x00000000c0103427                sys_creat
+                0x00000000c0103431                sys_link
+                0x00000000c010343b                sys_unlink
+                0x00000000c0103445                sys_chdir
+                0x00000000c010344f                sys_mknod
+                0x00000000c0103459                sys_chmod
+                0x00000000c0103463                sys_chown
+                0x00000000c010346d                sys_stat
+                0x00000000c0103477                sys_lseek
+                0x00000000c0103481                sys_mount
+                0x00000000c010348b                sys_umount
+                0x00000000c0103495                sys_fstat
+                0x00000000c010349f                sys_pause
+                0x00000000c01034a9                sys_utime
+                0x00000000c01034b3                sys_access
+                0x00000000c01034bd                sys_sync
+                0x00000000c01034c7                sys_kill
+                0x00000000c01034d1                sys_mkdir
+                0x00000000c01034db                sys_rmdir
+                0x00000000c01034e5                sys_dup
+                0x00000000c01034ef                sys_pipe
+                0x00000000c01034f9                sys_signal
+                0x00000000c0103503                sys_ioctl
+                0x00000000c010350d                sys_fcntl
+                0x00000000c0103517                sys_chroot
+                0x00000000c0103521                sys_ustat
+                0x00000000c010352b                sys_dup2
+                0x00000000c0103535                sys_sigaction
+                0x00000000c010353f                sys_sgetmask
+                0x00000000c0103549                sys_ssetmask
+                0x00000000c0103553                do_signal
+                0x00000000c0103559                math_error
+                0x00000000c010355f                math_state_restore
+                0x00000000c0103565                math_emulate
+                0x00000000c0103598                do_execve
+                0x00000000c01035a2                unexpected_hd_interrupt
+                0x00000000c01035bb                unexpected_floppy_interrupt
+                0x00000000c01035c1                sys_ftime
+                0x00000000c01035cb                sys_break
+                0x00000000c01035d5                sys_ptrace
+                0x00000000c01035df                sys_stty
+                0x00000000c01035e9                sys_gtty
+                0x00000000c01035f3                sys_rename
+                0x00000000c01035fd                sys_prof
+                0x00000000c0103607                sys_setregid
+                0x00000000c010369d                sys_setgid
+                0x00000000c01036b0                sys_acct
+                0x00000000c01036ba                sys_phys
+                0x00000000c01036c4                sys_lock
+                0x00000000c01036ce                sys_mpx
+                0x00000000c01036d8                sys_ulimit
+                0x00000000c01036e2                sys_time
+                0x00000000c01036f4                sys_setreuid
+                0x00000000c0103796                sys_setuid
+                0x00000000c01037a9                sys_stime
+                0x00000000c01037b3                sys_times
+                0x00000000c01037bd                sys_brk
+                0x00000000c0103800                sys_setpgid
+                0x00000000c01038cd                sys_getpgrp
+                0x00000000c01038dd                sys_setsid
+                0x00000000c010394a                sys_uname
+                0x00000000c0103954                sys_umask
+ .text          0x00000000c0103985      0x3ed ./entry/trap_gate.o
+                0x00000000c0103b01                do_double_fault
+                0x00000000c0103b20                do_general_protection
+                0x00000000c0103b3f                do_divide_error
+                0x00000000c0103b5e                do_int3
+                0x00000000c0103bed                do_nmi
+                0x00000000c0103c0c                do_debug
+                0x00000000c0103c2b                do_overflow
+                0x00000000c0103c4a                do_bounds
+                0x00000000c0103c69                do_invalid_op
+                0x00000000c0103c88                do_device_not_available
+                0x00000000c0103ca7                do_coprocessor_segment_overrun
+                0x00000000c0103cc6                do_invalid_TSS
+                0x00000000c0103ce5                do_segment_not_present
+                0x00000000c0103d04                do_stack_segment
+                0x00000000c0103d23                do_coprocessor_error
+                0x00000000c0103d53                do_reserved
+ .text          0x00000000c0103d72       0x25 ./init/init.o
+                0x00000000c0103d72                init
+ .text          0x00000000c0103d97        0x0 ./IPC/mmap.o
+ .text          0x00000000c0103d97        0x0 ./IPC/msg_qeue.o
+ .text          0x00000000c0103d97        0x0 ./IPC/pipe.o
+ .text          0x00000000c0103d97        0x0 ./IPC/signal.o
+ .text          0x00000000c0103d97        0x0 ./lib/common.o
+ .text          0x00000000c0103d97      0xc7f ./lib/console.o
+                0x00000000c0103eaf                clear_screen
+                0x00000000c0103f06                show_char
+                0x00000000c0103f29                show_char_color
+                0x00000000c010403d                show_string
+                0x00000000c010406b                show_string_color
+                0x00000000c0104099                itoa
+                0x00000000c01041c7                show_hex_num
+                0x00000000c010421a                show_hex_num_color
+                0x00000000c0104262                show_dec_num
+                0x00000000c01042a7                show_dec_num_color
+                0x00000000c0104578                vsprintf
+                0x00000000c01049a5                sprintf
+                0x00000000c01049ce                printf
+ .text          0x00000000c0104a16        0x0 ./lib/io.o
+ .text          0x00000000c0104a16        0x0 ./lib/list.o
+ .text          0x00000000c0104a16       0x43 ./lib/logging.o
+                0x00000000c0104a16                logging
+ .text          0x00000000c0104a59      0x3ea ./lib/string.o
+                0x00000000c0104abd                memcmp
+                0x00000000c0104afd                memset
+                0x00000000c0104b2d                strcmp
+                0x00000000c0104b8f                strncmp
+                0x00000000c0104bef                strnlen
+                0x00000000c0104c21                atou
+                0x00000000c0104cbb                simple_strtoull
+                0x00000000c0104dbb                strlen
+                0x00000000c0104de3                strstr
+ .text          0x00000000c0104e43      0x6dc ./mm/heap.o
+                0x00000000c0104e43                init_heap
+                0x00000000c0104eae                kmalloc
+                0x00000000c0104f98                kfree
+                0x00000000c01053bc                test_heap
+                0x00000000c01054f2                malloc
+                0x00000000c0105508                free
+ .text          0x00000000c010551f      0x90c ./mm/memory.o
+                0x00000000c010551f                show_mem_map
+                0x00000000c01055a9                init_pmm
+                0x00000000c0105705                free_page
+                0x00000000c010576e                alloc_page
+                0x00000000c01057d8                do_no_page
+                0x00000000c0105813                un_wp_page
+                0x00000000c01058f7                do_wp_page
+                0x00000000c010595a                get_virt_page
+                0x00000000c010597f                free_virt_page
+                0x00000000c010599c                init_vmm
+                0x00000000c0105a7d                map
+                0x00000000c0105b25                unmap
+                0x00000000c0105b8c                get_mapping
+                0x00000000c0105c20                copy_page_tables
+                0x00000000c0105d9a                free_page_tables
+ .text          0x00000000c0105e2b      0x2af ./task/sched.o
+                0x00000000c0105e2b                show_task
+                0x00000000c0105e9b                show_stat
+                0x00000000c0105ede                schedule
+                0x00000000c0105ff8                sched_init
                 0x00000000c0107000                . = ALIGN (0x1000)
- *fill*         0x00000000c01060c1      0xf3f 
+ *fill*         0x00000000c01060da      0xf26 
 
 .iplt           0x00000000c0107000        0x0 加载地址 0x0000000000107000
  .iplt          0x00000000c0107000        0x0 ./boot/boot.o

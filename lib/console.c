@@ -23,15 +23,15 @@ static u8	verti_c = 0;
 static void move_cursor()
 {
 	// 屏幕是80 字节宽
-	u16 cursorLocation = horiz_c* 80 + verti_c;
+	u16 cursorLocation = horiz_c + verti_c* 80;
 
 	//0x3D4和0X3D5两个端口可以用来读写显卡的内部寄存器
 	//0x3D4用户写入要访问的寄存器编号，0x3D5用来读写寄存器数据
 	//14, 15分别表示存放光标位置的两个寄存器，其中14接受高8bit，15接受低8bit
-	outb(0x3D4, 14); 
-	outb(0x3D5, cursorLocation >> 8); 		//发送位置的高8bit
-	outb(0x3D4, 15); 
-	outb(0x3D5, cursorLocation); 			//发送位置的低8bit
+	outb_p(14, 0x3D4); 
+	outb_p(cursorLocation >> 8, 0x3D5); 		//发送位置的高8bit
+	outb_p(15, 0x3D4); 
+	outb_p(cursorLocation, 0x3D5); 			//发送位置的低8bit
 };
 
 

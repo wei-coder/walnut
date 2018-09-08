@@ -113,5 +113,9 @@ void entry_kernel()
 	{
 		printf("father process operating!\n");
 	}
+	while(1)
+	{
+		init();
+	}
 }
 

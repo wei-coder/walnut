@@ -26,6 +26,9 @@ asm volatile ("movl %%esp,%%eax\n\t" \
     "pushl $0x7B\n\t" \
     "pushl %%eax\n\t" \
     "pushfl\n\t" \
+    "popl %%eax\n\t" \
+    "or $0x3000,%%eax\n\t" \
+    "pushl %%eax\n\t" \
     "pushl $0x73\n\t" \
     "pushl $1f\n\t" \
     "iret\n" \
