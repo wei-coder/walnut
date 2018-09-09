@@ -117,6 +117,8 @@ PIO方式写命令的执行过程如下：
 #define  IDE_CMD_READ              		0x20 	//读扇区命令
 #define  IDE_CMD_WRITE             		0x30 	//写扇区命令
 #define  IDE_CMD_VERIFY            		0x40	//验证
+										0x50	//format
+										0x60	//init
 #define  IDE_CMD_SEEK              		0x70	//设置读写点
 #define	 IDE_CMD_EXEC_DIAGNOSE     		0x90	//硬盘诊断
 #define  IDE_CMD_SET_DRIVE_PARAMETERS  	0x91	//设定硬盘参数

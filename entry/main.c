@@ -96,10 +96,10 @@ void entry_kernel()
 	init_timer(100);
 
 	sched_init();
+	init_hd();
 	/*¿ªÖÐ¶Ï*/
 	asm volatile ("sti");
 
-	//init_hd();
 
 	move_to_user_mode();
 	printf("***start user mode!\n");
@@ -115,7 +115,7 @@ void entry_kernel()
 	}
 	while(1)
 	{
-		init();
+		nop();
 	}
 }
 
