@@ -40,8 +40,8 @@ void hd_cmd_excu(hd_cmd_t * cmd)
 
 bool is_hd_ready()
 {
-	u8 status = inb_p(HD_PRI_STAT_COM);
-	if(status & 0xC0 == 0x40)
+	u8 status = inb_p(HD_PRI_CONTROL);
+	if(status == 0x58)
 	{
 		return true;
 	}
@@ -72,12 +72,14 @@ void write_intr()
 
 void print_identify(char * info)
 {
+	#if 1
 	HD_IDENTIFY_T * hd_info = (HD_IDENTIFY_T *)info;
 	printf("HD cyl num: %d; head num: %d; sectors per track: %d\r\n", hd_info->wNumCyls, hd_info->wNumHeads, hd_info->wNumCurSectorsPerTrack);
 	hd_info->sSerialNumber[19] = 0;
 	hd_info->sModelNumber[39] = 0;
 	printf("HD serial num: %s; mode num: %s;\r\n", hd_info->sSerialNumber,hd_info->sModelNumber);
 	printf("HD support DMA: %s; support LBA: %s;\r\n", ((hd_info->wCapabilities.DMA) == 1)?"YES":"NO", ((hd_info->wCapabilities.LBA) == 1)?"YES":"NO");
+	#endif
 }
 
 void identify_intr()
@@ -93,10 +95,10 @@ void identify_intr()
 void hd_identify(int drive)
 {
 	hd_cmd_t cmd = {0};
-	cmd.device = SET_DEVICE_REG(0, drive, 0);
+	cmd.device = 0xE0;
 	cmd.command = SATA_IDENTIFY;
 	cmd.ptr_hd = identify_intr;
-	#if 0
+	#if 1
 	if(!is_hd_ready())
 	{
 		wait_hd();

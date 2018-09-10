@@ -31,7 +31,7 @@ prupose:	硬盘驱动的相关变量及函数声明
 /*下面这个是唯一一个控制块寄存器*/
 #define HD_PRI_CONTROL		0x3F6
 
-#define SET_DEVICE_REG(lba,drv,lba_hs) (((lba)<<6) | ((drv)<<4) | ((lba_hs)&0xF))
+#define SET_DEVICE_REG(lba,drv,lba_hs) (0xE0 | ((lba)<<6) | ((drv)<<4) | ((lba_hs)&0xF))
 
 /*SATA 指令代码*/ 
 #define  SATA_RESET       		0x08	//重置reset命令

@@ -63,6 +63,6 @@ bochs:
 
 .PHONY:debug
 debug:
-	qemu-system-i386 -S -s -fda walnut.img -boot a &
+	qemu-system-i386 -S -s -fda walnut.img -hda ../share/walnut_hd.vhd -boot a &
 	sleep 1
 	gdb -x gdbinit
