@@ -2,7 +2,7 @@
 filename: vfs.h
 author:		wei-coder
 time:		2018-09-12
-purpose:	vfsµÄÏà¹ØµÄÊı¾İ½á¹¹¶¨Òå¼°º¯ÊıÉùÃ÷
+purpose:	vfsçš„ç›¸å…³çš„æ•°æ®ç»“æ„å®šä¹‰åŠå‡½æ•°å£°æ˜
 */
 
 #ifndef __VFS_H
@@ -11,8 +11,6 @@ purpose:	vfsµÄÏà¹ØµÄÊı¾İ½á¹¹¶¨Òå¼°º¯ÊıÉùÃ÷
 #include "type.h"
 
 #define DNAME_LEN_MAX 36
-
-#define ROOTFS_MAGIC_NUM	0x1
 
 struct file_operations
 {
@@ -48,7 +46,7 @@ struct address_space
 
 typedef struct index_node
 {
-	dev_t i_rdev;
+	ulong i_rdev;
 	ulong i_size;
 	ulong i_atime;
 	ulong i_ctime;
@@ -68,7 +66,6 @@ struct super_operations
 	void (*destroy_inode)(inode_t *);
 	void (*dirty_inode)(inode_t *);
 	int (*write_inode)(inode_t *);
-	int (*read_super)(sb_t *);
 	int (*write_super)(sb_t *);
 };
 
@@ -92,12 +89,11 @@ typedef struct file_system_type
 	struct list_head * s_list;
 	char * name;
 	int	fs_flag;
-	dentry_t * (*mount)(struct file_system_type *, int, const char *, void *);
-	void (*kill_sb)(sb_t*);
+	bool (*read_super)(sb_t*,void *, int);
 }fs_type_t;
 
-/*´æ´¢Ò»¸öÒÑ¾­°²×°µÄÎÄ¼şÏµÍ³ĞÅÏ¢£¬µ±ÏµÍ³³õÊ¼»¯Ê±£¬
-»áÍ¨¹ı¶ÁÈ¡´ÅÅÌµÄÌØ¶¨Î»ÖÃÀ´¼ÓÔØÎÄ¼şÏµÍ³µÄ¿ØÖÆĞÅÏ¢*/
+/*å­˜å‚¨ä¸€ä¸ªå·²ç»å®‰è£…çš„æ–‡ä»¶ç³»ç»Ÿä¿¡æ¯ï¼Œå½“ç³»ç»Ÿåˆå§‹åŒ–æ—¶ï¼Œ
+ä¼šé€šè¿‡è¯»å–ç£ç›˜çš„ç‰¹å®šä½ç½®æ¥åŠ è½½æ–‡ä»¶ç³»ç»Ÿçš„æ§åˆ¶ä¿¡æ¯*/
 typedef struct super_block
 {
 	struct list_head	s_list;
@@ -108,13 +104,13 @@ typedef struct super_block
 	ulong				s_maxbytes;
 	struct file_system_type    		*s_type;
 	const struct super_operations	*s_op;
-	ulong				s_flags;//°²×°±êÊ¶
+	ulong				s_flags;//å®‰è£…æ ‡è¯†
 	ulong				s_magic;
 	struct dentry		*s_root;
 	ulong    			s_umount;
 	ulong				s_lock;
 	int 		   		s_count;
-	ulong				s_active;//ÒıÓÃ¼ÆÊı
+	ulong				s_active;//å¼•ç”¨è®¡æ•°
 	struct list_head	s_inodes;
 	struct list_head	s_files;
 	struct list_head	s_mounts;

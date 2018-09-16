@@ -1,0 +1,10 @@
+/*
+filename: rootfs.c
+author:   wei-coder
+time:	  2018-09-15
+purpose:  rootfs文件系统的相关函数实现
+*/
+
+#include "vfs.h"
+static struct super_operations rootfs_op = {	.alloc_inode = alloc_inode_rf,	.destroy_inode = destroy_inode_rf,	.dirty_inode = dirty_inode_rf,	.write_inode = NULL,	.read_super = read_super_rf,	.write_super = NULL};static fs_type_t rootfs_type = {	.name = "rootfs",	.fs_flag = 0,	.mount = rootfs_mount,	.kill_sb = rootfs_kill_sb};static inode_operations rootfs_inode_op = {	.create = ,	.mkdir = ,	.rmdir = ,	.mknod = ,	.rename = ,	.lookup = }int read_super_rf(sb_t * pSblk){	if(NULL == pSblk)	{		return KER_FAIL;	}	pSblk->s_dev = 0;	pSblk->s_blocksize = 4096;	pSblk->s_files = NULL;	pSblk->s_inodes = NULL;	pSblk->s_magic = ROOTFS_MAGIC_NUM;	pSblk->s_root = NULL;	pSblk->s_op = &rootfs_op;}inode_t * alloc_inode_rf(){	inode_t * inode_rf = kmalloc(sizeof(inode_t));	if(NULL == inode_rf)	{		logging("[ROOTFS] alloc inode failed!\r\n");		return NULL;	}	memset(inode_rf, 0, sizeof(inode_t));	inode_rf->i_rdev = 0;	inode_rf->i_size = ;	inode_rf->i_atime = ;	inode_rf->i_ctime = ;	inode_rf->i_blocks = ;	inode_rf->i_blkbits = ;	inode_rf->i_mode = ;	inode_rf->i_ino = ;	inode_rf->i_count = ;	inode_rf->i_op = ;	inode_rf->i_fop = &rootfs_inode_op;	inode_rf->i_mapping = ;}bool destroy_inode_rf(u32 inode_no){	}void dirty_inode_rf(){	}dentry_t * rootfs_mount(struct file_system_type * fs_type, int flags, const char * fs_name, void * data){	read_super_rf;}dentry_t * rootfs_kill_sb(struct file_system_type * fs_type, int flags, const char * fs_name, void * data){	read_super_rf;}void init_rootfs(){	register_filesystem(&rootfs_type);	rootfs_type.mount(&rootfs_type, 0, "rootfs", NULL);	logging("[INFO] init rootfs success!\r\n");	return;}void init_mnt_tree(){	}
+	

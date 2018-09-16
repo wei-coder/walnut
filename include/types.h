@@ -17,6 +17,15 @@ purpose:	内核的全局类型定义
 	#define FALSE 0
 #endif
 
+#ifndef KER_SUC
+	#define KER_SUC 0
+#endif
+
+#ifndef KER_FAIL
+	#define KER_FAIL -1
+#endif
+
+
 #ifndef _PTRDIFF_T
 #define _PTRDIFF_T
 typedef long ptrdiff_t;

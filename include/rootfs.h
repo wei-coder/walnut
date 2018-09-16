@@ -1,0 +1,1 @@
+/*filename:	rootfs.hauthor:		wei-codertime:		2018-09-15purpose:	rootfs的数据及函数声明*/int read_super_rf(sb_t * pSblk);void init_rootfs();dentry_t * ramfs_mount(struct file_system_type * fs_type, int flags, const char * fs_name, void * data);

@@ -2,38 +2,34 @@
 filename: vfs.c
 author:wei-coder
 time:  2018-09-12
-purpose: è™šæ‹Ÿæ–‡ä»¶ç³»ç»Ÿçš„å®žçŽ°æ–‡ä»¶
+purpose: ÐéÄâÎÄ¼þÏµÍ³µÄÊµÏÖÎÄ¼þ
 */
 
 #include "vfs.h"
 
 sb_t * g_sblk;
+fs_type_t * g_fslist;
 
-void init_vfs()
-{
-}
 
-int register_filesystem(struct file_system_type * fs)
+int register_filesystem(fs_type_t* fs)
 {
-	sb_t * new_sb = kmalloc(sizeof(sb_t));
-	if(NULL == new_sb)
-	{
-		logging("[ERROR]: memory alloc for super block failed!");
-		return -1;
-	}
-	memset(new_sb,0,sizeof(sb_t));
-	struct list_head * tail = getlast_lh((struct list_head *)g_sblk);
+	struct list_head * tail = getlast_lh(g_fslist->s_list);
 	if(NULL == tail)
 	{
-		g_sblk = new_sb;
+		g_fslist = fs;
+		fs->s_list->next = NULL;
+		fs->s_list->prev = NULL;
 	}
 	else
 	{
-		tail->next = new_sb->s_list;
-		new_sb->s_list->prev = tail;
+		if(NULL == find_filesystem(fs->name, 0))
+		{
+			tail->next = fs->s_list;
+			fs->s_list->prev = tail;
+			fs->s_list->next = NULL;
+		}
 	}
-	new_sb->s_type = fs;
-	new_sb->s_type->read_super(new_sb, new_sb->s_type->name, new_sb->s_type->fs_flag);
+	return KER_SUC;
 }
 
 struct file_system_type * find_filesystem(char * fs_name, int name_len)
@@ -48,4 +44,11 @@ struct file_system_type * find_filesystem(char * fs_name, int name_len)
 		tmp = (struct file_system_type *)(tmp->s_list->next);
 	}
 	return NULL;
+}
+
+void init_fs()
+{
+	init_rootfs();
+	init_mnt_tree();
+	init_ext4();
 }
