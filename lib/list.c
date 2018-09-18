@@ -81,7 +81,6 @@ void del_slist(void * node)
 	snode_t * del_node = NULL;
 	slist_t * this = (slist_t*)((ulong)del_slist - 4*(sizeof(ulong))); 
 	snode_t * tmp = this->head;
-	if(this->isequal(node,tmp->pNode))
 	while(NULL != tmp->next)
 	{
 		if(this->isequal(node,tmp->next->pNode))
@@ -186,7 +185,6 @@ void del_dlist(void * node)
 	lnode_t * del_node = NULL;
 	dlist_t * this = (dlist_t*)((ulong)del_slist - 4*(sizeof(ulong))); 
 	lnode_t * tmp = this->head;
-	if(this->isequal(node,tmp->pNode))
 	while(NULL != tmp->next)
 	{
 		if(this->isequal(node,tmp->next->pNode))
@@ -279,6 +277,20 @@ struct list_head * getlast_lh(struct list_head * plist)
 		ptmp = ptmp->next;
 	}
 	return ptmp;
+}
+
+bool list_head_del_node(struct list_head * node)
+{
+	if(NULL == node)
+	{
+		return true;
+	}
+	node->prev->next = node->next;
+	if(NULL != node->next)
+	{
+		node->next->prev = node->prev;
+	}
+	free(node);
 }
 
 #endif

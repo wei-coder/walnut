@@ -10,6 +10,25 @@ purpose: 虚拟文件系统的实现文件
 sb_t * g_sblk;
 fs_type_t * g_fslist;
 
+inode_t *find_inode(u32 inode_no)
+{
+	sb_t * tmp_sblk = g_sblk;
+	while(tmp_sblk)
+	{
+		inode_t * tmp_inode = (inode_t *)(tmp_sblk->s_inodes);
+		while(tmp_inode)
+		{
+			if(tmp_inode->i_ino == inode_no)
+			{
+				return tmp_inode;
+			}
+			tmp_inode = (inode_t *)(tmp_inode->i_list->next);
+		}
+		tmp_sblk = (sb_t *)(tmp_sblk->s_list->next);
+	}
+	return NULL;
+}
+
 
 int register_filesystem(fs_type_t* fs)
 {

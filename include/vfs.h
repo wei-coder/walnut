@@ -27,7 +27,7 @@ struct file_operations
 struct inode_operations
 {
 	int (*create)(inode_t *, dentry_t *, int, void *);
-	int (*mkdir)(inode_t *, dentry_t *, int);
+	int (*mkdir)(inode_t *, dentry_t *, mode_t);
 	int (*rmdir)(inode_t *, dentry_t *);
 	int (*mknod)(inode_t *, dentry_t *, int, ulong);
 	int (*rename)(inode_t *, dentry_t *);
@@ -48,6 +48,7 @@ struct address_space
 
 typedef struct index_node
 {
+	struct list_head * i_list;
 	dev_t i_rdev;
 	ulong i_size;
 	ulong i_atime;
@@ -57,6 +58,7 @@ typedef struct index_node
 	u32	  i_mode;
 	u32	  i_ino;
 	u32	  i_count;
+	u32	  i_dirty;
 	struct inode_operations *i_op;
 	struct file_operations * i_fop;
 	struct address_space *	 i_mapping;
@@ -64,7 +66,7 @@ typedef struct index_node
 
 struct super_operations
 {
-	inode_t *(*alloc_inode)(sb_t *);
+	inode_t *(*alloc_inode)();
 	void (*destroy_inode)(inode_t *);
 	void (*dirty_inode)(inode_t *);
 	int (*write_inode)(inode_t *);
@@ -72,18 +74,35 @@ struct super_operations
 	int (*write_super)(sb_t *);
 };
 
+struct dentry_operations
+{
+};
+
 typedef struct dentry
 {
 	inode_t * d_inode;
 	u8 d_iname[DNAME_LEN_MAX];
 	int	d_mounted;
+	unsigned int d_flags;
+	struct dentry *d_parent;
+	const struct dentry_operations *d_op;
+	struct super_block *d_sb;
+	unsigned long d_time;
+	void *d_fsdata;
+
+	struct list_head d_child;
+	struct list_head d_subdirs;
 }dentry_t;
 
 typedef struct file
 {
+	struct list_head * f_list;
+	u32	f_count;
+	dentry_t *	f_dentry;
 	struct file_operations * f_op;
 	u32	f_mode;
 	ulong f_pos;
+	u32	f_dirty;
 	struct address_space * f_mapping;
 }file_t;
 
@@ -122,5 +141,8 @@ typedef struct super_block
 	unsigned int		s_max_links;
 	u32					s_time_gran;
 }sb_t;
+
+extern sb_t * g_sblk;
+extern fs_type_t * g_fslist;
 
 #endif
