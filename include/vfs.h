@@ -113,6 +113,7 @@ typedef struct file
 	u32	f_mode;
 	ulong f_pos;
 	u32	f_dirty;
+	void * f_private;
 	struct address_space * f_mapping;
 }file_t;
 
