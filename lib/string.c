@@ -16,7 +16,7 @@ int memcmp(const void *s1, const void *s2, size_t len)
 	return diff;
 }
 
-void memset(const void * dest, u8 value, size_t len)
+void memset(void * dest, u8 value, size_t len)
 {
 	u8 *dst = (u8*)dest;
 	while(len)
@@ -25,6 +25,36 @@ void memset(const void * dest, u8 value, size_t len)
 		len--;
 	}
 };
+
+void memcpy(void * dest, void * source, size_t len)
+{
+	u8 * dst = (u8 *)dest;
+	u8 * src = (u8 *)source;
+	while(len)
+	{
+		*dst++ = *src++;
+		len --;
+	}
+}
+
+void strcpy(char * dst, char * src)
+{
+	while(*src)
+	{
+		*dst++ = *src ++;
+	}
+	*dst = 0;
+}
+
+void strncpy(char * dst, char * src, size_t len)
+{
+	while(len-- && *src)
+	{
+		*dst++ = *src++;
+	}
+	*dst = 0;
+}
+
 
 int strcmp(const char *str1, const char *str2)
 {
@@ -58,7 +88,7 @@ int strncmp(const char *cs, const char *ct, size_t count)
 	return 0;
 }
 
-int strnlen(const char *s, size_t maxlen)
+int strnlen(char *s, size_t maxlen)
 {
 	const char *es = s;
 	while (*es && maxlen) {

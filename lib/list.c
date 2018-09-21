@@ -20,15 +20,18 @@ queue_t* create_queue()
 	return NULL;
 };
 
-void pop(queue_t* pque)
+void *pop(queue_t* pque)
 {
+	void * ret = NULL;
 	lnode_t* tmpNode = pque->head;
 	pque->head = pque->head->next;
 	if (NULL != pque->head)
 	{
 		pque->head->prev = NULL;
 	};
+	ret = tmpNode->pNode;
 	free(tmpNode);
+	return ret;
 };
 
 void push(queue_t* pque, lnode_t* pnode)

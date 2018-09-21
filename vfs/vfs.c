@@ -9,6 +9,8 @@ purpose: 虚拟文件系统的实现文件
 
 sb_t * g_sblk;
 fs_type_t * g_fslist;
+dentry_t * g_dentry;
+
 
 inode_t *find_inode(u32 inode_no)
 {

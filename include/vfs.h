@@ -48,7 +48,7 @@ struct address_space
 
 typedef struct index_node
 {
-	struct list_head * i_list;
+	struct list_head i_list;
 	dev_t i_rdev;
 	ulong i_size;
 	ulong i_atime;
@@ -78,8 +78,20 @@ struct dentry_operations
 {
 };
 
+/*
+root
+|
+boot-bin-lib
+|
+xxx-yyy-zzz
+如上图所示结构，d_child指向本目录的兄弟目录链表
+			d_subdirs指向本目录的子目录。
+			以此形成一个树状结构。
+*/
 typedef struct dentry
 {
+	struct list_head  d_subdirs;
+	struct list_head  d_child;
 	inode_t * d_inode;
 	u8 d_iname[DNAME_LEN_MAX];
 	int	d_mounted;
@@ -90,13 +102,11 @@ typedef struct dentry
 	unsigned long d_time;
 	void *d_fsdata;
 
-	struct list_head d_child;
-	struct list_head d_subdirs;
 }dentry_t;
 
 typedef struct file
 {
-	struct list_head * f_list;
+	struct list_head f_list;
 	u32	f_count;
 	dentry_t *	f_dentry;
 	struct file_operations * f_op;
@@ -108,7 +118,7 @@ typedef struct file
 
 typedef struct file_system_type
 {
-	struct list_head * s_list;
+	struct list_head s_list;
 	char * name;
 	int	fs_flag;
 	dentry_t * (*mount)(struct file_system_type *, int, const char *, void *);
