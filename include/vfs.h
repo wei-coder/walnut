@@ -62,6 +62,7 @@ typedef struct index_node
 	struct inode_operations *i_op;
 	struct file_operations * i_fop;
 	struct address_space *	 i_mapping;
+	void * i_private;
 }inode_t;
 
 struct super_operations
@@ -87,6 +88,8 @@ xxx-yyy-zzz
 如上图所示结构，d_child指向本目录的兄弟目录链表
 			d_subdirs指向本目录的子目录。
 			以此形成一个树状结构。
+			增加子节点时需要先根据d_subdirs指针找到第一个子节点，
+			然后得到该节点的dentry指针，再根据d_child指针作为链表头，找到表尾并插入。
 */
 typedef struct dentry
 {
@@ -101,7 +104,6 @@ typedef struct dentry
 	struct super_block *d_sb;
 	unsigned long d_time;
 	void *d_fsdata;
-
 }dentry_t;
 
 typedef struct file

@@ -119,32 +119,6 @@ int copy_process (int nr, long ebp, long edi, long esi, long gs, long none,
 	p->esp = (long)kern_stack;
 
 
-	#if 0
-// 以下设置任务状态段TSS 所需的数据（参见列表后说明）。
-	p->tss.back_link = 0;
-	p->tss.esp0 = PAGE_SIZE + (long) p;	// 堆栈指针（由于是给任务结构p 分配了1 页
-// 新内存，所以此时esp0 正好指向该页顶端）。
-	p->tss.ss0 = _SELECTOR_KER_DS;		// 堆栈段选择符（内核数据段）[??]。
-	p->tss.eip = eip;		// 指令代码指针。
-	p->tss.eflags = eflags;	// 标志寄存器。
-	p->tss.eax = 0;
-	p->tss.ecx = ecx;
-	p->tss.edx = edx;
-	p->tss.ebx = ebx;
-	p->tss.esp = esp;
-	p->tss.ebp = ebp;
-	p->tss.esi = esi;
-	p->tss.edi = edi;
-	p->tss.es = es & 0xffff;	// 段寄存器仅16 位有效。
-	p->tss.cs = cs & 0xffff;
-	p->tss.ss = ss & 0xffff;
-	p->tss.ds = ds & 0xffff;
-	p->tss.fs = fs & 0xffff;
-	p->tss.gs = gs & 0xffff;
-	p->tss.ldt = _SELECTOR_LDT;	// 该新任务nr 的局部描述符表选择符（LDT 的描述符在GDT 中）。
-	p->tss.io_bitmap = 0x80000000;
-	#endif
-	
 // 设置新任务的代码和数据段基址、限长并复制页表。如果出错（返回值不是0），则复位任务数组中
 // 相应项并释放为该新任务分配的内存页。
 	if (FALSE == copy_mem(nr, p, current))

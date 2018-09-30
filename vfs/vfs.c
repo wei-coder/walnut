@@ -69,7 +69,5 @@ struct file_system_type * find_filesystem(char * fs_name, int name_len)
 
 void init_fs()
 {
-	init_rootfs();
-	init_mnt_tree();
-	init_ext4();
+
 }
