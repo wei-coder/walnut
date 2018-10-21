@@ -227,14 +227,14 @@ int nice(int val);
 int open(const char * filename, int flag, ...);
 int pause(void);
 int pipe(int * fildes);
-int read(int fildes, char * buf, off_t count);
+int read(int fd, char * buf, off_t count);
 int setpgrp(void);
 int setpgid(pid_t pid,pid_t pgid);
 int setuid(uid_t uid);
 int setgid(gid_t gid);
 void (*signal(int sig, void (*fn)(int)))(int);
 int stat(const char * filename, u32 * stat_buf);
-int fstat(int fildes, u32 * stat_buf);
+int fstat(int fd, u32 * stat_buf);
 int stime(time_t * tptr);
 int sync(void);
 time_t time(time_t * tloc);
@@ -242,17 +242,19 @@ time_t times(struct tms * tbuf);
 int ulimit(int cmd, long limit);
 mode_t umask(mode_t mask);
 int umount(const char * specialfile);
-int uname(struct utsname * name);
+void uname(struct utsname * name);
 int unlink(const char * filename);
 int ustat(dev_t dev, u32 * ubuf);
 int utime(const char * filename, u32 * times);
 pid_t waitpid(pid_t pid,int * wait_stat,int options);
 pid_t wait(int * wait_stat);
-int write(int fildes, const char * buf, off_t count);
+int write(int fd, const char * buf, off_t count);
 int dup2(int oldfd, int newfd);
 int getppid(void);
 pid_t getpgrp(void);
 pid_t setsid(void);
+int mkdir(const char *pathname, mode_t mode);
+int rmdir(const char *pathname);
 
 #endif
 

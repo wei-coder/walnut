@@ -1,5 +1,5 @@
 /*
-filename: vfs.c
+filename: vfs_main.c
 author:wei-coder
 time:  2018-09-12
 purpose: 虚拟文件系统的实现文件
@@ -11,6 +11,66 @@ sb_t * g_sblk;
 fs_type_t * g_fslist;
 dentry_t * g_dentry;
 
+int sys_mount(const char * specialfile, const char * dir, int rwflag)
+{
+	dentry_t* s_dentry = vfs_get_dentry(const char * specialfile);
+	if(NULL == s_dentry)
+	{
+		return VFS_FAIL;
+	}
+	dentry_t * d_dentry = vfs_get_dentry(const char * dir);
+	if(NULL == d_dentry)
+	{
+		return VFS_FAIL;
+	}
+	s_dentry->d_sb->s_type->mount(d_dentry->d_sb->s_type, int, const char *, void *);
+	return VFS_OK;
+}
+
+int sys_umount(const char * specialfile)
+{
+	return 0;
+}
+
+int sys_mknod(const char * filename, mode_t mode, dev_t dev)
+{
+	return 0;
+}
+
+int sys_chmod(const char * filename, mode_t mode)
+{
+	return 0;
+}
+
+int sys_chown(const char * filename, uid_t owner, gid_t group)
+{
+	return 0;
+}
+
+int sys_link(const char * filename1, const char * filename2)
+{
+	return 0;
+}
+
+int sys_unlink(const char * filename)
+{
+	return 0;
+}
+
+int sys_chdir(const char * filename)
+{
+	return 0;
+}
+
+int sys_mkdir(const char *pathname, mode_t mode)
+{
+	return 0;
+}
+
+int sys_rmdir(const char *pathname)
+{
+	return 0;
+}
 
 inode_t *find_inode(u32 inode_no)
 {

@@ -8,6 +8,8 @@ author:		直接借用了linux0.11的实现
 #define __SYSCALL_H
 
 #include "sched.h"
+#include "vfs.h"
+#include "file.h"
 
 extern int sys_setup();
 extern int sys_exit();

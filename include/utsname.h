@@ -1,17 +1,15 @@
 #ifndef _SYS_UTSNAME_H
 #define _SYS_UTSNAME_H
 
-//#include "types.h"
+#include "unistd.h"
 
 struct utsname {
-    char sysname[9];
-    char nodename[9];
-    char release[9];
-    char version[9];
-    char machine[9];
+    char sysname[10];
+    char nodename[10];
+    char release[10];
+    char version[10];
+    char machine[10];
 };
-
-extern int uname(struct utsname * utsbuf);
 
 #endif
 

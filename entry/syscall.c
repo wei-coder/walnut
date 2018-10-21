@@ -9,6 +9,8 @@ purpose:	系统调用的相关函数实现
 #include "memory.h"
 #include "console.h"
 #include "errorno.h"
+#include "vfs.h"
+#include "utsname.h"
 
 extern long volatile jiffies;							// 从开机开始算起的滴答数时间值（10ms/滴答）。
 extern long startup_time;								// 开机时间。从1970:0:0:0 开始计时的秒数。
@@ -18,7 +20,7 @@ extern struct task_struct *task[NR_TASKS];				// 定义任务指针数组。
 ulong do_hd;
 ulong do_floppy;
 
-//stack_t stack_start = {&user_stack[PAGE_SIZE >> 2], _SELECTOR_KER_DS};		//定义任务0的系统堆栈地址
+_syscall1(void,uname,struct utsname *,utsbuf);
 
 
 //// 时钟中断C 函数处理程序，在kernel/system_call.s 中的_timer_interrupt（176 行）被调用。
@@ -104,93 +106,14 @@ int sys_setup()
 	return 0;
 };
 
-int sys_exit(int error_code)
-{
-	return -1;
-}
-
-int sys_read()
-{
-	return 0;
-};
-int sys_write()
-{
-	return 0;
-};
-int sys_open()
-{
-	return 0;
-}
-int sys_close()
-{
-	return 0;
-}
-	
 int sys_waitpid()
 {
 	return 0;
 }
 
-int sys_creat()
+int sys_exit(int error_code)
 {
-	return 0;
-}
-
-
-int sys_link()
-{
-	return 0;
-}
-
-
-int sys_unlink()
-{
-	return 0;
-}
-
-int sys_chdir()
-{
-	return 0;
-}
-
-int sys_mknod()
-{
-	return 0;
-}
-
-int sys_chmod()
-{
-	return 0;
-}
-
-int sys_chown()
-{
-	return 0;
-}
-
-int sys_stat()
-{
-	return 0;
-}
-
-int sys_lseek()
-{
-	return 0;
-}
-
-int sys_mount()
-{
-	return 0;
-}
-
-int sys_umount()
-{
-	return 0;
-}
-
-int sys_fstat()
-{
-	return 0;
+	return -1;
 }
 
 int sys_pause()
@@ -218,16 +141,6 @@ int sys_kill()
 	return 0;
 }
 
-int sys_mkdir()
-{
-	return 0;
-}
-
-int sys_rmdir()
-{
-	return 0;
-}
-
 int sys_dup()
 {
 	return 0;
@@ -244,11 +157,6 @@ int sys_signal()
 }
 
 int sys_ioctl()
-{
-	return 0;
-}
-
-int sys_fcntl()
 {
 	return 0;
 }
@@ -583,9 +491,18 @@ int sys_setsid(void)
 
 // 获取系统信息。其中utsname 结构包含5 个字段，分别是：本版本操作系统的名称、网络节点名称、
 // 当前发行级别、版本级别和硬件类型名称。
-int sys_uname(u32 * name)
+void sys_uname(struct utsname * name)
 {
-    return 0;
+	if(NULL == name)
+	{
+		return;
+	}
+	sprintf(name->machine, "x86-32");
+	sprintf(name->nodename,"N/A");
+	sprintf(name->release, "r1");
+	sprintf(name->sysname, "walnut");
+	sprintf(name->version, "v1");
+    return;
 };
 
 // 设置当前进程创建文件属性屏蔽码为mask & 0777。并返回原屏蔽码。

@@ -1,5 +1,5 @@
 ;filename: syscall.s
-;author:   懒得自己实现，直接借用了linux0.11的实现
+;author:   整体架构借用了linux0.11的实现，后续又补充了自己实现的一些系统api
 
 %if 1
 
@@ -83,7 +83,7 @@ system_call:
 	mov edx,_SELECTOR_USER_DS		; fs points to local data space
 	mov fs,dx             ; fs 指向局部数据段(局部描述符表中数据段描述符)。
 ; 下面这句操作数的含义是：调用地址 = _sys_call_table + %eax * 4。参见列表后的说明。
-; 对应的C 程序中的sys_call_table 在include/linux/sys.h 中，其中定义了一个包括72 个
+; 对应的C 程序中的sys_call_table 在syscall.h 中，其中定义了一个包括72 个
 ; 系统调用C 处理函数的地址数组表。	
 	call [sys_call_table + eax*4]
 	push eax                      ; 把系统调用返回值入栈。

@@ -14,15 +14,8 @@ purpose:	vfs的相关的数据结构定义及函数声明
 
 #define ROOTFS_MAGIC_NUM	0x1
 
-struct file_operations
-{
-	int(*read)(int,const void*, u32);
-	int(*write)(int,const void*, u32);
-	int (*open)(const char *, int);
-	int (*close)(int);
-	ulong (*seek)(file_t *, ulong, int);
-	int (*mmap)(file_t *,ulong);
-};
+#define VFS_OK		0
+#define VFS_FAIL	-1
 
 struct inode_operations
 {
