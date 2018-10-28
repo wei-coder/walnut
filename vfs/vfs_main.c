@@ -11,19 +11,19 @@ sb_t * g_sblk;
 fs_type_t * g_fslist;
 dentry_t * g_dentry;
 
-int sys_mount(const char * specialfile, const char * dir, int rwflag)
+int sys_mount(char * dev_name, char * dir_name, char * type, unsigned long flags, void * data)
 {
-	dentry_t* s_dentry = vfs_get_dentry(const char * specialfile);
+	dentry_t* s_dentry = vfs_get_dentry(dev_name);
 	if(NULL == s_dentry)
 	{
 		return VFS_FAIL;
 	}
-	dentry_t * d_dentry = vfs_get_dentry(const char * dir);
+	dentry_t * d_dentry = vfs_get_dentry(dir_name);
 	if(NULL == d_dentry)
 	{
 		return VFS_FAIL;
 	}
-	s_dentry->d_sb->s_type->mount(d_dentry->d_sb->s_type, int, const char *, void *);
+	s_dentry->d_sb->s_type->mount(d_dentry->d_sb->s_type, flags, dir_name, data);
 	return VFS_OK;
 }
 

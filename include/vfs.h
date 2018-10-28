@@ -148,7 +148,13 @@ typedef struct super_block
 	u32					s_time_gran;
 }sb_t;
 
-extern sb_t * g_sblk;
-extern fs_type_t * g_fslist;
+/*vfs_mount结构，用于指示一个挂载点*/
+typedef struct vfs_mount_s
+{
+	struct vfs_mount_s *	m_parent;
+	dentry_t * 				m_root;
+	sb_t *					m_sb;
+	dentry_t *				m_mntpoint;
+}vfsmount_t;
 
 #endif
