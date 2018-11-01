@@ -108,9 +108,7 @@ typedef struct task_struct
 	long esp;
 	long esp0;
 	long eip;
-
-	//struct desc_t ldt[3];			//本任务的局部表描述符。0-空，1-代码段cs，2-数据和堆栈段ds&ss。
-	//tss_struct tss;				//本进程的任务状态段信息结构。
+	path_t * path;
 }task_struct;
 
 #ifdef MM_STRUCT

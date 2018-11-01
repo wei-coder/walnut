@@ -9,21 +9,84 @@ purpose: 虚拟文件系统的实现文件
 
 sb_t * g_sblk;
 fs_type_t * g_fslist;
-dentry_t * g_dentry;
+vfsmount_t * g_vfsmount;
+
+int search_subdir(path_t * root, char * dir)
+{
+	ulong flag = 0;
+	dentry_t * d_root = root->p_dentry;
+	struct list_head * sub_dir = d_root->d_subdirs.next;
+	while(NULL != sub_dir)
+	{
+		if(0 == strcmp(VFS_CHILD_DENTRY(sub_dir)->d_iname, dir))
+		{
+			flag = VFS_CHILD_DENTRY(sub_dir)->d_flags;
+			if(DENTRY_FLAG_MNT == flag&(~DENTRY_FLAG_MNT))
+			{
+				root->p_vmount = VFS_CHILD_MOUNTS(root->p_vmount->m_mount.next);
+				root->p_dentry = root->p_vmount->m_root;
+			}
+			else
+			{
+				root->p_dentry = (dentry_t *)sub_dir;
+			}
+			return VFS_OK;
+		}
+		sub_dir = sub_dir->next;
+	}
+	return VFS_FAIL;
+}
+
+int vfs_get_path(char * dir, path_t * cpath)
+{
+	char sub_dir[DNAME_LEN_MAX] = NULL;
+	if('/' == *dir)
+	{
+		cpath->p_vmount = g_vfsmount;
+		cpath->p_dentry = g_vfsmount->m_root;
+	}
+	else
+	{
+		cpath->p_vmount = current->path->p_vmount;
+		cpath->p_dentry = current->path->p_dentry;
+	}
+	char * sub_dir = strtok(dir,"/");
+	while(NULL != sub_dir)
+	{
+		if(VFS_FAIL == search_subdir(cpath,sub_dir))
+		{
+			return VFS_FAIL;
+		}
+		sub_dir = strtok(NULL, "/");
+	}
+	return VFS_OK;
+}
 
 int sys_mount(char * dev_name, char * dir_name, char * type, unsigned long flags, void * data)
 {
-	dentry_t* s_dentry = vfs_get_dentry(dev_name);
-	if(NULL == s_dentry)
+	dentry_t * root = NULL;
+	path_t * s_path = vfs_get_path(dev_name);
+	if(NULL == s_path)
 	{
 		return VFS_FAIL;
 	}
-	dentry_t * d_dentry = vfs_get_dentry(dir_name);
-	if(NULL == d_dentry)
+	path_t * d_path = vfs_get_path(dir_name);
+	if(NULL == d_path)
 	{
 		return VFS_FAIL;
 	}
-	s_dentry->d_sb->s_type->mount(d_dentry->d_sb->s_type, flags, dir_name, data);
+	
+	vfsmount_t * new_mnt = kmalloc(sizeof(vfsmount_t));
+	if(NULL == new_mnt)
+	{
+		return VFS_FAIL;
+	}
+	new_mnt->m_parent = d_path->p_vmount;
+	new_mnt->m_mntpoint = d_path->p_dentry;
+	new_mnt->m_root = s_path->p_dentry->d_sb->s_type->mount(d_path->p_dentry->d_sb->s_type, flags, dir_name, data);
+	new_mnt->m_sb = new_mnt->m_root->d_sb;
+	struct list_head * tail =  getlast_lh(&(d_path->p_vmount->m_mount));
+	tail->next = &(new_mnt->m_child);
 	return VFS_OK;
 }
 

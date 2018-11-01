@@ -17,6 +17,11 @@ purpose:	vfs的相关的数据结构定义及函数声明
 #define VFS_OK		0
 #define VFS_FAIL	-1
 
+#define DENTRY_FLAG_MNT		0x1
+#define DENTRY_FLAG_RO		0x2
+#define DENTRY_FLAG_WO		0x4
+#define DENTRY_FLAG_RW		0x8
+
 struct inode_operations
 {
 	int (*create)(inode_t *, dentry_t *, int, void *);
@@ -98,6 +103,7 @@ typedef struct dentry
 	unsigned long d_time;
 	void *d_fsdata;
 }dentry_t;
+#define VFS_CHILD_DENTRY(child) ((dentry_t *)((char *)(child) - sizeof(struct list_head)))
 
 typedef struct file
 {
@@ -155,6 +161,16 @@ typedef struct vfs_mount_s
 	dentry_t * 				m_root;
 	sb_t *					m_sb;
 	dentry_t *				m_mntpoint;
+	struct list_head		m_mount;
+	struct list_head		m_child;
 }vfsmount_t;
+#define VFS_CHILD_MOUNTS(child)  ((vfsmount_t *)((char*)(child) + sizeof(struct list_head) - sizeof(vfsmount_t)))
+
+
+typedef struct path_s
+{
+	dentry_t * p_dentry;
+	vfsmount_t * p_vmount;
+}path_t;
 
 #endif

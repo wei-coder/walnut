@@ -173,3 +173,51 @@ char *strstr(const char *s1, const char *s2)
 	return NULL;
 }
 
+char * strchar(const char * s, char c)
+{
+	char * tmp = s;
+	while(*tmp != 0)
+	{
+		if(*tmp == c)
+		{
+			return tmp;
+		}
+		tmp++;
+	}
+	return NULL;
+}
+
+char * strtok(char *s, const char *delim)
+{
+	static char * this;
+	char * tmp = NULL;
+	if(NULL != s)
+	{
+		if(*delim == *s)
+		{
+			s += 1;
+		}
+		tmp = s;
+	}
+	else if(NULL != this)
+	{
+		s = this;
+		tmp = this;
+	}
+	else
+	{
+		return NULL;
+	}
+	while(0 != *tmp)
+	{
+		if(*delim == *tmp)
+		{
+			*tmp = '\0';
+			this = tmp++;
+			return s;
+		}
+		tmp ++;
+	}
+	this = NULL
+	return s;
+}
