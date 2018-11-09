@@ -57,6 +57,8 @@ typedef struct index_node
 	u32	  i_ino;
 	u32	  i_count;
 	u32	  i_dirty;
+	uid_t i_uid;
+	gid_t i_gid;
 	struct inode_operations *i_op;
 	struct file_operations * i_fop;
 	struct address_space *	 i_mapping;

@@ -37,6 +37,9 @@ typedef struct dlist
 	bool (*isequal)(void *,void*);
 	bool (*release)(void *);
 	bool (*insert)(void *, void *);
+	bool (*push)(void *);
+	lnode_t* (*que_pop)(void *);
+	lnode_t* (*stack_pop)(void *);
 	void (*del)(void *);
 	void (*destroy)();
 	bool (*search)(lnode_t *, void *);
@@ -53,16 +56,6 @@ typedef struct slist
 	void (*destroy)();
 	bool (*search)(snode_t *, void *);
 }slist_t;
-
-typedef struct queue
-{
-	lnode_t* head;
-	lnode_t* tail;
-}queue_t;
-
-queue_t* create_queue();
-void pop(queue_t* pque);
-void push(queue_t* pque, lnode_t * pnode);
 
 #endif
 #endif

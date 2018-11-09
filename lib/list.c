@@ -8,54 +8,67 @@ prupose:	���������Ļ���ʵ��
 #include "list.h"
 
 #if 1
-queue_t* create_queue()
-{
-	queue_t* pque = malloc();
-	if(NULL != pque)
-	{
-		pque->head = NULL;
-		pque->tail = NULL;
-		return pque;
-	}
-	return NULL;
-};
 
-void *pop(queue_t* pque)
+//队列先进先出，因此从链表头pop
+void *que_pop(lnode_t ** phead)
 {
 	void * ret = NULL;
-	lnode_t* tmpNode = pque->head;
-	pque->head = pque->head->next;
-	if (NULL != pque->head)
+	lnode_t* head = *phead;
+	if(head->next == head)
 	{
-		pque->head->prev = NULL;
-	};
-	ret = tmpNode->pNode;
-	free(tmpNode);
-	return ret;
-};
-
-void push(queue_t* pque, lnode_t* pnode)
-{
-	if ((NULL == pque) || (NULL == pnode))
-	{
-		return;
-	};
-	
-	if (NULL == pque->tail)
-	{
-		pnode->next = NULL;
-		pnode->prev = NULL;
-		pque->head = pnode;
-		pque->tail = pnode;
+		*phead = NULL;
 	}
 	else
 	{
-		pnode->next = NULL;
-		pnode->prev = pque->tail;
-		pque->tail->next = pnode;
-		pque->tail = pnode;
-	};
+		*phead = head->next;
+		*phead->prev = head->prev;
+		head->prev->next = *phead;
+	}
+	ret = head->pNode;
+	free(head);
+	return ret;
+};
 
+//栈后进先出，因此从链表尾pop
+void *stack_pop(lnode_t** phead)
+{
+	void * ret = NULL;
+	lnode_t* tail = *phead->prev;
+	if(tail->prev == tail)
+	{
+		*phead = NULL;
+	}
+	else
+	{
+		tail->prev->next = *phead;
+		*phead->prev = tail->prev;
+	}
+	ret = tail->pNode;
+	free(tail);
+	return ret;
+};
+
+//不管是队列还是栈，此处都以环形双向链表实现，节点push，都是附加在链表尾；
+void push(lnode_t* phead, lnode_t* pnode)
+{
+	if(NULL == pnode)
+	{
+		return;
+	}
+	
+	if (NULL == phead)
+	{
+		phead = pnode;
+		pnode->next = pnode;
+		pnode->prev = pnode;
+	}
+	else
+	{
+		phead->prev->next = pnode;
+		pnode->prev = phead->prev;
+		phead->prev = pnode;
+		pnode->next = phead;
+	}
 };
 
 /*sigle list*/
@@ -226,7 +239,7 @@ void destroy_dlist()
 
 bool search_dlist(lnode_t ** rnode, void * pnode)
 {
-	dlist_t * this = (dlist_t*)((ulong)search_slist - 6*(sizeof(ulong))); 
+	dlist_t * this = (dlist_t*)((ulong)search_dlist - 6*(sizeof(ulong))); 
 	lnode_t * tmp = this->head;
 	while(NULL != tmp)
 	{
@@ -245,24 +258,17 @@ dlist_t* create_dlist(bool (*isequal)(void*,void*), void (*release)(void *))
 	dlist_t * plist = malloc(sizeof(dlist_t));
 	if(NULL != plist)
 	{
-		plist->head = malloc(sizeof(lnode_t));
-		if(NULL != plist->head)
-		{
-			plist->head->pNode = NULL;
-			plist->head->next = NULL;
-			plist->head->prev = NULL;
-			plist->isequal = isequal;
-			plist->release = release;
-			plist->insert = insert_dlist;
-			plist->del = del_dlist;
-			plist->destroy = destroy_dlist;
-			plist->search = search_dlist;
-			return plist;
-		}
-		else
-		{
-			free(plist);
-		}
+		plist->head = NULL;
+		plist->isequal = isequal;
+		plist->release = release;
+		plist->insert = insert_dlist;
+		plist->push = push;
+		plist->que_pop = que_pop;
+		plist->stack_pop = stack_pop;
+		plist->del = del_dlist;
+		plist->destroy = destroy_dlist;
+		plist->search = search_dlist;
+		return plist;
 	}
 	return NULL;
 }
