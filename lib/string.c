@@ -150,6 +150,8 @@ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int bas
 size_t strlen(const char *s)
 {
 	const char *sc;
+	if(NULL == s)
+		return 0;
 
 	for (sc = s; *sc != '\0'; ++sc)
 		/* nothing */;
@@ -175,6 +177,10 @@ char *strstr(const char *s1, const char *s2)
 
 char * strchar(const char * s, char c)
 {
+	if(NULL == s)
+	{
+		return NULL;
+	}
 	char * tmp = s;
 	while(*tmp != 0)
 	{

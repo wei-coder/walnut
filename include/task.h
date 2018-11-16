@@ -10,6 +10,7 @@ purpose:	线程、进程相关的数据结构定义
 
 #include "types.h"
 #include "signal.h"
+#include "vfs.h"
 
 /*进程状态*/
 #define	TASK_UNNABLE	-1		//任务不可运行
@@ -61,6 +62,19 @@ typedef struct tss_struct
 	long io_bitmap;
 }tss_struct;
 
+typedef struct fd
+{
+	struct list_head fdnode;
+	int fno;
+	file_t * pfile;
+}fd_t;
+
+struct task_file
+{
+	int num;
+	ulong fmap[4];
+	fd_t * phead;
+};
 
 /*进程控制块*/
 typedef struct task_struct
@@ -100,22 +114,15 @@ typedef struct task_struct
 /* file system info */
 	int tty;						//进程使用tty 的子设备号。-1 表示没有使用。
 	u16 umask;						//文件创建属性屏蔽位。
-	u32 *pwd;						//当前工作目录i 节点结构。 暂时通过普通指针代替
-	u32 *root;						//根目录i 节点结构。暂时通过普通指针代替
-	u32 *executable;				//执行文件i 节点结构。暂时通过普通指针代替
+	path_t pwd;						//当前工作目录路径。 暂时通过普通指针代替
+	path_t root;					//根目录路径。暂时通过普通指针代替
+	path_t executable;				//执行文件路径。暂时通过普通指针代替
+	struct task_file flist;			//进程打开文件链表
 	ulong close_on_exec;			//执行时关闭文件句柄位图标志。（参见include/fcntl.h）
 	u32	pdt;
 	long esp;
 	long esp0;
 	long eip;
-	path_t * path;
 }task_struct;
-
-#ifdef MM_STRUCT
-typedef struct mm_struct
-{
-	long 
-}mm_struct;
-#endif
 
 #endif

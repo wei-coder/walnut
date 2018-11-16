@@ -17,19 +17,23 @@ vfsmount_t * search_vfsmnt(char * dir)
 	vfsmount_t * sub_vmnt = VFS_CHILD_MOUNTS(vmnt->m_mount.next);
 	dlist_t * pdlist = create_dlist(NULL,NULL);
 	while(sub_vmnt)
-	{		if(0 == strcmp(sub_vmnt->m_mntpoint->d_iname, dir))
-		{			pdlist->destroy(pdlist);
+	{
+		if(0 == strcmp(sub_vmnt->m_mntpoint->d_iname, dir))
+		{
+			pdlist->destroy(pdlist);
 			return sub_vmnt;
 		}
 
 		if(NULL != sub_vmnt->m_child.next)
-		{			lnode_t * tmp_node1 = kmalloc(sizeof(lnode_t));
+		{
+			lnode_t * tmp_node1 = kmalloc(sizeof(lnode_t));
 			tmp_node1->pNode = (void *)(VFS_CHILD_MOUNTS(sub_vmnt->m_child.next));
 			pdlist->push(pdlist->head, tmp_node1);
 		}
 
 		if(NULL != sub_vmnt->m_mount.next)
-		{			lnode_t * tmp_node2 = kmalloc(sizeof(lnode_t));
+		{
+			lnode_t * tmp_node2 = kmalloc(sizeof(lnode_t));
 			tmp_node2->pNode = (void *)(VFS_CHILD_MOUNTS(sub_vmnt->m_mount.next));
 			pdlist->push(pdlist->head, tmp_node2);
 		}
@@ -66,27 +70,62 @@ int search_subdir(path_t * root, char * dir)
 	return VFS_FAIL;
 }
 
-int vfs_get_path(char * dir, path_t * cpath)
+int vfs_get_path(char * dir, path_t * cpath, int flag)
 {
-	char sub_dir[DNAME_LEN_MAX] = NULL;
+	int dir_len = 0;
+	char * pointer = dir;
 	if('/' == *dir)
 	{
+		pointer += 1;
 		cpath->p_vmount = g_vfsmount;
 		cpath->p_dentry = g_vfsmount->m_root;
 	}
 	else
 	{
-		cpath->p_vmount = current->path->p_vmount;
-		cpath->p_dentry = current->path->p_dentry;
+		cpath->p_vmount = current->pwd.p_vmount;
+		cpath->p_dentry = current->pwd.p_dentry;
 	}
-	char * sub_dir = strtok(dir,"/");
-	while(NULL != sub_dir)
+	char catalog[DNAME_LEN_MAX] = {0};
+	char * sub_dir = strchar(pointer, "/");
+	if(NULL == sub_dir)
 	{
-		if(VFS_FAIL == search_subdir(cpath,sub_dir))
+		dir_len = strlen(pointer);
+	}
+	else
+	{
+		dir_len = (int)(sub_dir-pointer);
+	}
+	strncpy(catalog,pointer,dir_len);
+	while(NULL != catalog)
+	{
+		if(VFS_FAIL == search_subdir(cpath,catalog))
 		{
-			return VFS_FAIL;
+			if(GET_PATH_FLAG_MEM == flag)
+			{
+				return VFS_FAIL;
+			}
+			else
+			{
+				dentry_t * td = NULL;
+				inode_t * tn = (inode_t *)kmalloc(sizeof(inode_t));
+				memset(td,0,sizeof(dentry_t));
+				dir_len = strlen(pointer);
+				strncpy(td->d_iname,catalog,dir_len<DNAME_LEN_MAX?dir_len:(DNAME_LEN_MAX-1));
+				if(td = cpath->p_dentry->d_inode->i_op->lookup(tn,sub_dir))
+				{
+					cpath->p_dentry = td;
+					return VFS_OK;
+				}
+			}
 		}
-		sub_dir = strtok(NULL, "/");
+		pointer = sub_dir;
+		if(NULL == pointer)
+		{
+			break;
+		}
+		sub_dir = strchar(pointer, "/");
+		memset(catalog,0,DNAME_LEN_MAX);
+		strncpy(catalog,pointer,(size_t)(sub_dir-pointer));
 	}
 	return VFS_OK;
 }
@@ -95,12 +134,12 @@ int sys_mount(char * dev_name, char * dir_name, char * type, unsigned long flags
 {
 	dentry_t * root = NULL;
 	path_t s_path = {0};
-	if(VFS_FAIL == vfs_get_path(dev_name, &s_path))
+	if(VFS_FAIL == vfs_get_path(dev_name, &s_path, GET_PATH_FLAG_MEM))
 	{
 		return VFS_FAIL;
 	}
 	path_t d_path = {0};
-	if(VFS_FAIL == vfs_get_path(dir_name, &d_path))
+	if(VFS_FAIL == vfs_get_path(dir_name, &d_path, GET_PATH_FLAG_MEM))
 	{
 		return VFS_FAIL;
 	}
@@ -140,14 +179,17 @@ void destroy_vfsmnt(vfsmount_t * vmnt)
 	dentry_t * sub_dentry = VFS_CHILD_DENTRY(root->d_subdirs.next);
 	dlist_t * pdlist = create_dlist(NULL,NULL);
 	while(sub_dentry)
-	{		if(NULL != sub_dentry->d_child.next)
-		{			lnode_t * tmp_node1 = kmalloc(sizeof(lnode_t));
+	{
+		if(NULL != sub_dentry->d_child.next)
+		{
+			lnode_t * tmp_node1 = kmalloc(sizeof(lnode_t));
 			tmp_node1->pNode = (void *)(VFS_CHILD_DENTRY(sub_dentry->d_child.next));
 			pdlist->push(pdlist->head, tmp_node1);
 		}
 
 		if(NULL != sub_dentry->d_subdirs.next)
-		{			lnode_t * tmp_node2 = kmalloc(sizeof(lnode_t));
+		{
+			lnode_t * tmp_node2 = kmalloc(sizeof(lnode_t));
 			tmp_node2->pNode = (void *)(VFS_CHILD_MOUNTS(sub_dentry->d_subdirs.next));
 			pdlist->push(pdlist->head, tmp_node2);
 		}
@@ -172,14 +214,17 @@ int sys_umount(const char * specialfile)
 	vfsmount_t * sub_vmnt = VFS_CHILD_MOUNTS(tmp_vmnt->m_mount.next);
 	dlist_t * pdlist = create_dlist(NULL,NULL);
 	while(sub_vmnt)
-	{		if(NULL != sub_vmnt->m_child.next)
-		{			lnode_t * tmp_node1 = kmalloc(sizeof(lnode_t));
+	{
+		if(NULL != sub_vmnt->m_child.next)
+		{
+			lnode_t * tmp_node1 = kmalloc(sizeof(lnode_t));
 			tmp_node1->pNode = (void *)(VFS_CHILD_MOUNTS(sub_vmnt->m_child.next));
 			pdlist->push(pdlist->head, tmp_node1);
 		}
 
 		if(NULL != sub_vmnt->m_mount.next)
-		{			lnode_t * tmp_node2 = kmalloc(sizeof(lnode_t));
+		{
+			lnode_t * tmp_node2 = kmalloc(sizeof(lnode_t));
 			tmp_node2->pNode = (void *)(VFS_CHILD_MOUNTS(sub_vmnt->m_mount.next));
 			pdlist->push(pdlist->head, tmp_node2);
 		}
@@ -227,36 +272,42 @@ int sys_chown(const char * filename, uid_t owner, gid_t group)
 
 int sys_link(const char * filename1, const char * filename2)
 {
-	return 0;
+	inode_t * pInode = (inode_t *)kmalloc(sizeof(inode_t));
+	dentry_t * pDentry = (dentry_t *)kmalloc(sizeof(dentry_t));
+	pDentry->d_inode = pInode;
+	path_t path = {0};
+	vfs_get_path(filename1,&path, GET_PATH_FLAG_MEM)
+	return current->pwd.p_dentry->d_inode->i_op->link(path.p_dentry,pInode,pDentry);
 }
 
 int sys_unlink(const char * filename)
 {
-	return 0;
+	path_t path = {0};
+	vfs_get_path(filename,&path, GET_PATH_FLAG_MEM);
+	return path.p_dentry->d_inode->i_op->unlink(path.p_dentry->d_inode, path.p_dentry);
 }
 
 int sys_chdir(const char * filename)
 {
+	path_t path = {0};
+	vfs_get_path(filename,&path, GET_PATH_FLAG_MEM);
+	current->pwd.p_dentry = path.p_dentry;
+	current->pwd.p_vmount = path.p_vmount;
 	return 0;
 }
 
-int sys_mkdir(const char *pathname, mode_t mode)
+int sys_mkdir(const char *pathname, int mode)
 {
-	path_t * here = current->path;
-	dentry_t * new_dentry = (dentry_t*)kmalloc(sizeof(dentry_t));
-	if(NULL == new_dentry)
-	{
-		logging("[ERROR]kmalloc new dentry.\r\n");
-		return -1;
-	}
-	new_dentry->d_parent = here->p_dentry;
-	
-	return 0;
+	inode_t * pInode = (inode_t *)kmalloc(sizeof(inode_t));
+	dentry_t * pDentry = (dentry_t *)kmalloc(sizeof(dentry_t));
+	return current->pwd.p_dentry->d_inode->i_op->mkdir(pInode,pDentry,mode);
 }
 
 int sys_rmdir(const char *pathname)
 {
-	return 0;
+	path_t path = {0};
+	vfs_get_path(pathname,&path, GET_PATH_FLAG_MEM);
+	return path.p_dentry->d_inode->i_op->rmdir(path.p_dentry->d_inode, path.p_dentry);
 }
 
 inode_t *find_inode(u32 inode_no)

@@ -67,6 +67,27 @@ typedef struct PHY_PAGE
 	};
 }phy_page;
 
+struct vm_operations_struct
+{
+	
+};
+
+struct vm_area_struct
+{
+	unsigned long vm_start;		
+	unsigned long vm_end;			
+	struct vm_area_struct *vm_next;
+	unsigned long vm_flags;		
+	struct vm_area_struct *vm_next_share;
+	struct vm_area_struct **vm_pprev_share;
+	struct vm_operations_struct * vm_ops;
+	unsigned long vm_pgoff;		
+	struct file * vm_file; 		
+	unsigned long vm_raend;		
+	void * vm_private_data;	  
+};
+
+
 
 /*页目录表表项结构
 typedef struct PDT

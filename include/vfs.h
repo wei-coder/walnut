@@ -20,16 +20,34 @@ purpose:	vfs的相关的数据结构定义及函数声明
 #define DENTRY_FLAG_MNT		0x1
 #define DENTRY_FLAG_RO		0x2
 #define DENTRY_FLAG_WO		0x4
-#define DENTRY_FLAG_RW		0x8
+
+#define GET_PATH_FLAG_MEM	0x1		//仅在缓存中查找路径
+#define GET_PATH_FLAG_ALL	0x2		//在内存和硬盘中查找路径
+
+#define O_R			0x1
+#define O_W			0x2
+#define O_CREATE	0x4
 
 struct inode_operations
 {
-	int (*create)(inode_t *, dentry_t *, int, void *);
-	int (*mkdir)(inode_t *, dentry_t *, mode_t);
-	int (*rmdir)(inode_t *, dentry_t *);
-	int (*mknod)(inode_t *, dentry_t *, int, ulong);
-	int (*rename)(inode_t *, dentry_t *);
-	dentry_t * (*lookup)(inode_t *, dentry_t *, void *);
+	int (*create) (inode_t *, struct dentry *,int);
+	struct dentry * (*lookup) (inode_t *, struct dentry *);
+	int (*link) (struct dentry *, inode_t *, struct dentry *);
+	int (*unlink) (inode_t *, struct dentry *);
+	int (*symlink) (inode_t *, struct dentry *, const char *);
+	int (*mkdir) (inode_t *, struct dentry *, int);
+	int (*rmdir) (inode_t *, struct dentry *);
+	int (*mknod) (inode_t *, struct dentry *, int, dev_t);
+	int (*rename) (inode_t *, struct dentry *,	inode_t *, struct dentry *);
+	int (*readlink) (struct dentry *, char *, int);
+	void (*truncate) (inode_t *);
+	int (*permission) (inode_t *, int);
+	int (*setattr) (struct dentry *, struct iattr *);
+	int (*getattr) (vfsmount_t *, struct dentry *, struct kstat *);
+	int (*setxattr) (struct dentry *, const char *,	const void *, size_t, int);
+	size_t (*getxattr) (struct dentry *, const char *, void *, size_t);
+	size_t (*listxattr) (struct dentry *, char *, size_t);
+	int (*removexattr) (struct dentry *, const char *);
 };
 
 struct address_space_operation
@@ -47,7 +65,7 @@ struct address_space
 typedef struct index_node
 {
 	struct list_head i_list;
-	dev_t i_rdev;
+	u32 i_rdev;
 	ulong i_size;
 	ulong i_atime;
 	ulong i_ctime;
@@ -67,16 +85,23 @@ typedef struct index_node
 
 struct super_operations
 {
-	inode_t *(*alloc_inode)();
+	inode_t *(*alloc_inode)(sb_t *);
 	void (*destroy_inode)(inode_t *);
-	void (*dirty_inode)(inode_t *);
-	int (*write_inode)(inode_t *);
-	int (*read_super)(sb_t *);
-	int (*write_super)(sb_t *);
+	void (*dirty_inode) (inode_t *);
+	int (*write_inode) (inode_t *, int);
+	void (*delete_inode) (inode_t *);
+	void (*put_super) (sb_t *);
+	void (*write_super) (sb_t *);
 };
 
 struct dentry_operations
 {
+	int (*d_revalidate)(struct dentry *);				//使dentry生效
+	int (*d_hash) (struct dentry *, char *);			//向hash表中加一个dentry
+	int (*d_compare) (struct dentry *, char *, char *);	//调用后表示无inode在使用该dentry
+	void (*d_delete)(struct dentry *);					//
+	void (*d_release)(struct dentry *);					//用于清除一个dentry
+	void (*d_iput)(struct dentry *, inode_t *);			//用于dentry释放它的inode
 };
 
 /*

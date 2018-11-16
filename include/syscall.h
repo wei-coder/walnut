@@ -19,7 +19,7 @@ extern int sys_write();
 extern int sys_open();
 extern int sys_close();
 extern int sys_waitpid();
-extern int sys_creat();
+extern int sys_create();
 extern int sys_link();
 extern int sys_unlink();
 extern int sys_execve();
@@ -85,7 +85,7 @@ extern int sys_setreuid();
 extern int sys_setregid();
 
 fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
-sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
+sys_write, sys_open, sys_close, sys_waitpid, sys_create, sys_link,
 sys_unlink, sys_execve, sys_chdir, sys_time, sys_mknod, sys_chmod,
 sys_chown, sys_break, sys_stat, sys_lseek, sys_getpid, sys_mount,
 sys_umount, sys_setuid, sys_getuid, sys_stime, sys_ptrace, sys_alarm,
