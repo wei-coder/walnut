@@ -36,7 +36,7 @@ struct stat {
 
 struct file_operations
 {
-	u32 (*llseek) (struct file *, u32, int);//用来修改文件当前的读写位置	
+	u32 (*lseek) (struct file *, u32, int);//用来修改文件当前的读写位置	
 	u32 (*read) (struct file *, char *, u32 *);//从设备中同步读取数据   
 	u32 (*write) (struct file *, const char *, u32 *);//向设备发送数据	
 	//u32 (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, u32);//初始化一个异步的读取操作   

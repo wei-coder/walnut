@@ -302,4 +302,19 @@ bool list_head_del_node(struct list_head * node)
 	free(node);
 }
 
+void push_ring_list(struct list_head * phead, struct list_head * pNode)
+{
+	if(NULL != phead)
+	{
+		pNode->next = phead;
+		pNode->prev = phead->prev;
+		phead->prev->next = pNode;
+		phead->prev = pNode;
+	}
+}
+
+#define init_ring_list_head(phead) {(phead)->next = (phead);(phead)->prev = (phead);}
+#define init_line_list_head(phead) {(phead)->next = NULL;(phead)->prev = NULL;}
+
+
 #endif

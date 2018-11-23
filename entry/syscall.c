@@ -255,11 +255,6 @@ int sys_gtty()
     return -ENOSYS;
 }
 
-int sys_rename()
-{
-    return -ENOSYS;
-}
-
 int sys_prof()
 {
     return -ENOSYS;
@@ -331,14 +326,6 @@ int sys_ulimit()
     return -ENOSYS;
 };
 
-// 返回从1970 年1 月1 日00:00:00 GMT 开始计时的时间值（秒）。如果tloc 不为null，则时间值
-// 也存储在那里。
-int sys_time(long * tloc)
-{
-    int i = 0;
-    return i;
-};
-
 /*
  * Unprivileged users may change the real user id to the effective uid
  * or vice versa.
@@ -399,7 +386,7 @@ int sys_stime(long * tptr)
 }
 
 // 获取当前任务时间。tms 结构中包括用户时间、系统时间、子进程用户时间、子进程系统时间。
-int sys_times(u32 * tbuf)
+int sys_times(struct tms * tbuf)
 {
     return jiffies;
 };

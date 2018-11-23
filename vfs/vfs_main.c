@@ -11,6 +11,40 @@ sb_t * g_sblk;
 fs_type_t * g_fslist;
 vfsmount_t * g_vfsmount;
 
+char * get_name_from_path(const char * pathname)
+{
+	char * name = NULL;
+	int path_len = strlen(pathname);
+	for(int i=path_len-1; i>=0; i--)
+	{
+		if('/' == pathname[i])
+		{
+			name = pathname+i+1;
+			return name;
+		}
+	}
+	return pathname;
+}
+
+sb_t * sget(struct file_system_type * fstype)
+{
+	if(NULL == fstype)
+	{
+		return NULL;
+	}
+	sb_t * s = g_sblk;
+	do
+	{
+		if(strcmp(fstype->name,s->s_type->name) == 0)
+		{
+			return s;
+		}
+		s = (sb_t *)(s->s_list.next);
+	}
+	while(s != g_sblk)
+	return NULL;
+}
+
 vfsmount_t * search_vfsmnt(char * dir)
 {
 	vfsmount_t * vmnt = g_vfsmount;
@@ -151,7 +185,13 @@ int sys_mount(char * dev_name, char * dir_name, char * type, unsigned long flags
 	}
 	new_mnt->m_parent = d_path.p_vmount;
 	new_mnt->m_mntpoint = d_path.p_dentry;
-	new_mnt->m_root = s_path.p_dentry->d_sb->s_type->mount(d_path.p_dentry->d_sb->s_type, flags, dir_name, data);
+	struct file_system_type * fstype = find_filesystem(type);
+	if(NULL == fstype)
+	{
+		kfree(new_mnt);
+		return VFS_FAIL;
+	}
+	new_mnt->m_root = fstype->mount(fstype, flags, dir_name, data);
 	new_mnt->m_sb = new_mnt->m_root->d_sb;
 	struct list_head * tail =  getlast_lh(&(d_path.p_vmount->m_mount));
 	tail->next = &(new_mnt->m_child);
@@ -298,16 +338,54 @@ int sys_chdir(const char * filename)
 
 int sys_mkdir(const char *pathname, int mode)
 {
-	inode_t * pInode = (inode_t *)kmalloc(sizeof(inode_t));
+	path_t path = {0};
+	if(vfs_get_path(pathname,&path,GET_PATH_FLAG_ALL) == VFS_FAIL)
+	{
+		return -1;
+	}
 	dentry_t * pDentry = (dentry_t *)kmalloc(sizeof(dentry_t));
-	return current->pwd.p_dentry->d_inode->i_op->mkdir(pInode,pDentry,mode);
+	if(NULL == pDentry)
+	{
+		logging("kmalloc dentry is failed!\r\n");
+		return -1;
+	}
+	memset(pDentry,0,sizeof(dentry_t));
+	char * dirname = get_name_from_path(pathname);
+	int namelen = strlen(dirname);
+	strncpy(pDentry->d_iname,dirname,(namelen>DNAME_LEN_MAX?DNAME_LEN_MAX:namelen));
+	pDentry->d_flags = mode;
+	pDentry->d_parent = path.p_dentry;
+	pDentry->d_op = path.p_dentry->d_op;
+	pDentry->d_sb = path.p_dentry->d_sb;
+	pDentry->d_time = time(0);
+	push_ring_list(&(path.p_dentry->d_subdirs),&(pDentry->d_child));
+	init_ring_list_head(&(pDentry->d_subdirs));
+	return current->pwd.p_dentry->d_inode->i_op->mkdir(path.p_dentry->d_inode,pDentry,mode);
 }
 
 int sys_rmdir(const char *pathname)
 {
 	path_t path = {0};
-	vfs_get_path(pathname,&path, GET_PATH_FLAG_MEM);
+	if(VFS_FAIL == vfs_get_path(pathname,&path, GET_PATH_FLAG_ALL))
+	{
+		return -1;
+	}
 	return path.p_dentry->d_inode->i_op->rmdir(path.p_dentry->d_inode, path.p_dentry);
+}
+
+int sys_rename(const char *oldpath, const char * newpath)
+{
+	path_t path = {0};
+	if(VFS_FAIL == vfs_get_path(oldpath, &path,GET_PATH_FLAG_ALL))
+	{
+		logging("get %s path for rename is failed!/r/n",oldpath);
+		return -1;
+	}
+
+	char * newname = get_name_from_path(newpath);
+	int name_len = strlen(newname);
+	strncpy(path.p_dentry->d_iname,newname,name_len<DNAME_LEN_MAX?newname:DNAME_LEN_MAX);
+	return path.p_dentry->d_inode->i_op->rename(path.p_dentry->d_inode, path.p_dentry);
 }
 
 inode_t *find_inode(u32 inode_no)
@@ -315,7 +393,7 @@ inode_t *find_inode(u32 inode_no)
 	sb_t * tmp_sblk = g_sblk;
 	while(tmp_sblk)
 	{
-		inode_t * tmp_inode = (inode_t *)(tmp_sblk->s_inodes);
+		inode_t * tmp_inode = (inode_t *)(tmp_sblk->s_inodes.next);
 		while(tmp_inode)
 		{
 			if(tmp_inode->i_ino == inode_no)
@@ -328,7 +406,6 @@ inode_t *find_inode(u32 inode_no)
 	}
 	return NULL;
 }
-
 
 int register_filesystem(fs_type_t* fs)
 {
@@ -351,7 +428,7 @@ int register_filesystem(fs_type_t* fs)
 	return KER_SUC;
 }
 
-struct file_system_type * find_filesystem(char * fs_name, int name_len)
+struct file_system_type * find_filesystem(char * fs_name)
 {
 	struct file_system_type * tmp = g_sblk->s_type;
 	while(NULL != tmp)

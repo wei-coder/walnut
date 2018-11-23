@@ -255,6 +255,7 @@ pid_t getpgrp(void);
 pid_t setsid(void);
 int mkdir(const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
+int rename(const char *oldpath, const char * newpath);
 
 #endif
 

@@ -25,3 +25,5 @@ _syscall2(int,link,const char *,filename1, const char *,filename2);
 _syscall1(int,unlink,const char *,filename);
 _syscall2(int,mkdir,const char *,pathname, mode_t,mode);
 _syscall1(int,rmdir,const char *,pathname);
+_syscall2(int,rename,const char *,oldpath,const char *, newpath);
+

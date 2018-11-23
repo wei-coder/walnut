@@ -28,6 +28,11 @@ purpose:	vfsµÄÏà¹ØµÄÊı¾İ½á¹¹¶¨Òå¼°º¯ÊıÉùÃ÷
 #define O_W			0x2
 #define O_CREATE	0x4
 
+#define INODE_FLAG_DIR		0x1
+#define INODE_FLAG_FILE		0x2
+#define INODE_FLAG_WO		0x4
+#define INODE_FLAG_RO		0x8
+
 struct inode_operations
 {
 	int (*create) (inode_t *, struct dentry *,int);
@@ -66,17 +71,19 @@ typedef struct index_node
 {
 	struct list_head i_list;
 	u32 i_rdev;
-	ulong i_size;
-	ulong i_atime;
-	ulong i_ctime;
-	ulong i_blkbits;
-	ulong i_blocks;
-	u32	  i_mode;
+	ulong i_size;		//æ–‡ä»¶å¤§å°
+	ulong i_atime;		//ä¸Šä¸€æ¬¡è®¿é—®æ—¶é—´
+	ulong i_mtime;		//ä¸Šä¸€æ¬¡ä¿®æ”¹æ—¶é—´
+	ulong i_ctime;		//åˆ›å»ºæ—¶é—´
+	ulong i_blkbits;	//å—å¤§å°
+	ulong i_blocks;		//æ–‡ä»¶çš„å—ä¸ªæ•°
+	u32	  i_mode;		//è®¿é—®æƒé™
 	u32	  i_ino;
-	u32	  i_count;
+	u32	  i_count;		//å¼•ç”¨æ•°
 	u32	  i_dirty;
 	uid_t i_uid;
 	gid_t i_gid;
+	sb_t * i_sb;
 	struct inode_operations *i_op;
 	struct file_operations * i_fop;
 	struct address_space *	 i_mapping;
@@ -168,7 +175,7 @@ typedef struct super_block
 	const struct super_operations	*s_op;
 	ulong				s_flags;//°²×°±êÊ¶
 	ulong				s_magic;
-	struct dentry		*s_root;
+	dentry_t			*s_root;
 	ulong    			s_umount;
 	ulong				s_lock;
 	int 		   		s_count;
