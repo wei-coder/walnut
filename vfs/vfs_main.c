@@ -145,7 +145,7 @@ int vfs_get_path(char * dir, path_t * cpath, int flag)
 				memset(td,0,sizeof(dentry_t));
 				dir_len = strlen(pointer);
 				strncpy(td->d_iname,catalog,dir_len<DNAME_LEN_MAX?dir_len:(DNAME_LEN_MAX-1));
-				if(td = cpath->p_dentry->d_inode->i_op->lookup(tn,sub_dir))
+				if(td = cpath->p_dentry->d_inode->i_op->lookup(tn,td))
 				{
 					cpath->p_dentry = td;
 					return VFS_OK;

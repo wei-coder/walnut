@@ -12,7 +12,9 @@ purpose:	vfsµÄÏà¹ØµÄÊı¾İ½á¹¹¶¨Òå¼°º¯ÊıÉùÃ÷
 
 #define DNAME_LEN_MAX 36
 
-#define ROOTFS_MAGIC_NUM	0x1
+#define ROOTFS_MAGIC_NUM	0x10101010
+#define WALNUT_MAGIC_NUM	0x01010101
+
 
 #define VFS_OK		0
 #define VFS_FAIL	-1
@@ -71,15 +73,15 @@ typedef struct index_node
 {
 	struct list_head i_list;
 	u32 i_rdev;
-	ulong i_size;		//æ–‡ä»¶å¤§å°
-	ulong i_atime;		//ä¸Šä¸€æ¬¡è®¿é—®æ—¶é—´
-	ulong i_mtime;		//ä¸Šä¸€æ¬¡ä¿®æ”¹æ—¶é—´
-	ulong i_ctime;		//åˆ›å»ºæ—¶é—´
-	ulong i_blkbits;	//å—å¤§å°
-	ulong i_blocks;		//æ–‡ä»¶çš„å—ä¸ªæ•°
-	u32	  i_mode;		//è®¿é—®æƒé™
+	ulong i_size;		//?‡ä»¶å¤§å°
+	ulong i_atime;		//ä¸Šä¸€æ¬¡è?¿é—??¶é—?
+	ulong i_mtime;		//ä¸Šä¸€æ¬¡ä¿®?¹æ—¶é—?
+	ulong i_ctime;		//?›å»ºæ—¶é—?
+	ulong i_blkbits;	//?—å¤§å?
+	ulong i_blocks;		//?‡ä»¶çš„?—ä¸???
+	u32	  i_mode;		//è®¿é—??ƒ?
 	u32	  i_ino;
-	u32	  i_count;		//å¼•ç”¨æ•°
+	u32	  i_count;		//å¼•?¨æ•?
 	u32	  i_dirty;
 	uid_t i_uid;
 	gid_t i_gid;
@@ -165,27 +167,26 @@ typedef struct file_system_type
 »áÍ¨¹ı¶ÁÈ¡´ÅÅÌµÄÌØ¶¨Î»ÖÃÀ´¼ÓÔØÎÄ¼şÏµÍ³µÄ¿ØÖÆĞÅÏ¢*/
 typedef struct super_block
 {
-	struct list_head	s_list;
-	dev_t			 	s_dev;
-	u8					s_dirt;
-	u8					s_blocksize_bits;
-	ulong				s_blocksize;
-	ulong				s_maxbytes;
+	struct list_head	s_list;						//Ö¸Ïò³¬¼¶¿éÁ´±íµÄÖ¸Õë
+	dev_t			 	s_dev;						//Éè±¸±êÊ¶·û
+	u8					s_dirt;						//ĞŞ¸Ä±êÖ¾
+	u8					s_blocksize_bits;			//ÒÔbitÎªµ¥Î»µÄ¿é´óĞ¡
+	ulong				s_blocksize;				//ÒÔ×Ö½ÚÎªµ¥Î»µÄ¿é´óĞ¡
+	ulong				s_maxbytes;					//ÎÄ¼şµÄ×î´ó³¤¶È
 	struct file_system_type    		*s_type;
 	const struct super_operations	*s_op;
-	ulong				s_flags;//°²×°±êÊ¶
-	ulong				s_magic;
-	dentry_t			*s_root;
-	ulong    			s_umount;
-	ulong				s_lock;
-	int 		   		s_count;
-	ulong				s_active;//ÒıÓÃ¼ÆÊı
-	struct list_head	s_inodes;
-	struct list_head	s_files;
-	struct list_head	s_mounts;
-	void				*s_fs_info;
-	unsigned int		s_max_links;
-	u32					s_time_gran;
+	ulong				s_flags;					//°²×°±êÊ¶
+	ulong				s_magic;					//Ä§Êı
+	dentry_t			*s_root;					//¸ùÄ¿Â¼
+	ulong    			s_umount;					//Ğ¶ÔØËùÓÃµÄĞÅºÅÁ¿
+	ulong				s_lock;						//³¬¼¶¿éĞÅºÅÁ¿
+	int 		   		s_count;					//ÒıÓÃ¼ÆÊı
+	ulong				s_active;					//´Î¼¶ÒıÓÃ¼ÆÊı
+	struct list_head	s_inodes;					//ËùÓĞË÷Òı½ÚµãµÄÁ´±í
+	struct list_head	s_files;					//ÎÄ¼ş¶ÔÏóÁ´±í
+	struct list_head	s_instance;					//ÓÃÓÚÖ¸¶¨ÎÄ¼şÏµÍ³µÄ³¬¼¶¿éÁ´±í
+	void				*s_fs_info;					//Ö¸ÏòÌØ¶¨ÎÄ¼şÏµÍ³µÄ³¬¼¶¿éĞÅÏ¢Ö¸Õë
+	u32					s_time_gran;				//ÄÉÃë¼¶µÄÊ±¼ä´ÁÁ£¶È
 }sb_t;
 
 /*vfs_mount½á¹¹£¬ÓÃÓÚÖ¸Ê¾Ò»¸ö¹ÒÔØµã*/

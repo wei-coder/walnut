@@ -112,8 +112,8 @@ void init_hd()
 	u8 * hd_num = (u8*)(0xc0000475);
 	printf("there is %d hds\r\n",*hd_num);
 	set_intr_gate(0x2E,&hd_interrupt);      // 设置硬盘中断门向量 int 0x2E(46)。
-	outb(0x21, inb(0x21)&0xfb);          // 复位接联的主8259A int2 的屏蔽位，允许从片
-	outb_p(inb(0xA1)&0xbf, 0xA1);            // 复位硬盘的中断请求屏蔽位（在从片上），允许
+	outb(0x21, inb(0x21)&0xfb);				// 复位接联的主8259A int2 的屏蔽位，允许从片
+	outb_p(inb(0xA1)&0xbf, 0xA1);           // 复位硬盘的中断请求屏蔽位（在从片上），允许
                                             // 硬盘控制器发送中断请求信号。
 	hdbuffer = (char *)malloc(512);
 	memset(hdbuffer,0,512);

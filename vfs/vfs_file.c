@@ -5,7 +5,7 @@ purpose: file对象的实现文件*/
 
 #include "file.h"
 
-file_t * getfile(int fd)
+fd_t * getfile(int fd)
 {
 	fd_t * tmpfd = NULL;
 	struct list_head * pNode = &(current->flist.phead->fdnode);
@@ -14,7 +14,7 @@ file_t * getfile(int fd)
 		tmpfd = (fd_t*)pNode;
 		if(fd == tmpfd->fno)
 		{
-			return tmpfd->pfile;
+			return tmpfd;
 		}
 	}
 	return NULL;
@@ -46,14 +46,22 @@ inline void reset_fd(int fd)
 
 u32 sys_read(int fd, char * buf, int len)
 {
-	file_t * this_file =  getfile(fd);
-	return this_file->f_op->read(this_file,buf,len);
+	fd_t * this_fd =  getfile(fd);
+	if(NULL == this_fd)
+	{
+		return -1;
+	}
+	return this_fd->pfile->f_op->read(this_fd->pfile,buf,len);
 }
 
 u32 sys_write(int fd, const char * buf, int len)
 {
-	file_t * this_file =  getfile(fd);
-	return this_file->f_op->write(this_file,buf,len);
+	fd_t * this_fd =  getfile(fd);
+	if(NULL == this_fd)
+	{
+		return -1;
+	}
+	return this_fd->pfile->f_op->write(this_fd->pfile,buf,len);
 }
 
 int sys_open(const char * filename, int flags)
@@ -97,31 +105,21 @@ int sys_open(const char * filename, int flags)
 
 int sys_close(int fd)
 {
-	file_t *pfile = getfile(fd);
-	struct list_head * tmpNode = &(current->flist.phead->fdnode);
-	fd_t * tmpfd = NULL;
-	while(NULL != tmpNode)
+	fd_t * pfd = getfile(fd);
+	if(NULL == pfd)
 	{
-		tmpfd = (fd_t *)tmpNode;
-		if(fd == tmpfd->fno)
-		{
-			tmpNode->prev->next = tmpNode->next;
-			tmpNode->next->prev = tmpNode->prev;
-			free(tmpfd->pfile);
-			free(tmpfd);
-			reset_fd(fd);
-			return 0;
-		}
-		tmpNode = tmpNode->next;
-		if(tmpNode = &(current->flist.phead->fdnode))
-		{
-			break;
-		}
+		return -1;
 	}
-	return -1;
+	pfd->fdnode.next->prev = pfd->fdnode.prev;
+	pfd->fdnode.prev->next = pfd->fdnode.next;
+	file_t * pfile = pfd->pfile;
+	free(pfile);
+	free(pfd);
+	reset_fd(fd);
+	return 0;
 }
 
-int sys_create(const char * filename, mode_t mode)
+int sys_create(const char * filename, int mode)
 {
 	path_t path = {0};
 	int namelen = strlen(filename);
@@ -152,17 +150,22 @@ int sys_create(const char * filename, mode_t mode)
 	newdentry->d_op = path.p_dentry->d_op;
 	newdentry->d_sb = path.p_dentry->d_sb;
 	newdentry->d_time = time(0);
-	inode_t * pinode = (inode_t *)kmalloc(sizeof(inode_t));
-	return path.p_dentry->d_inode->i_op->create(pinode,newdentry,mode);
+	inode_t * pinode = path.p_dentry->d_inode->i_op->create(path.p_dentry->d_inode,newdentry,mode);
+	if(NULL == pinode)
+	{
+		return -1;
+	}
+	return 0
 }
 
 int sys_lseek(int fd, u32 offset, int where)
 {
-	file_t * pfile = getfile(fd);
-	if(NULL == pfile)
+	fd_t * this_fd = getfile(fd);
+	if(NULL == this_fd)
 	{
 		return -1;
 	}
+	file_t * pfile = this_fd->pfile;
 	switch(where)
 	{
 		case SEEK_SET:
@@ -194,11 +197,12 @@ int sys_fstat(int fd, struct stat *buf)
 	{
 		return -1;
 	}
-	file_t * pfile = getfile(fd);
-	if(NULL == pfile)
+	fd_t * pfd = getfile(fd);
+	if(NULL == pfd)
 	{
 		return -1;
 	}
+	file_t * pfile = pfd->pfile;
 	buf->st_dev = pfile->f_dentry->d_inode->i_rdev;
 	buf->st_ino = pfile->f_dentry->d_inode->i_ino;
 	buf->st_mode = pfile->f_dentry->d_inode->i_mode;
@@ -221,7 +225,12 @@ int sys_fcntl(int fd, int cmd, ...)
 	va_list args;
 	va_start(args,cmd);
 	int arg = va_arg(args,int);
-	file_t * pfile = getfile(fd);
+	fd_t * pfd = getfile(fd);
+	if(NULL == pfd)
+	{
+		return -1;
+	}
+	file_t * pfile = pfd->pfile;
 	switch(cmd)
 	{
 		case F_DUPFD:
