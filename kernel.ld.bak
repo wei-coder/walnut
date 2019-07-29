@@ -2,7 +2,7 @@
 filename:	kernel.ld
 author:	wei-coder
 date:	2017-12
-purpose:	ÄÚºË±àÒëµÄÁ´½ÓÆ÷½Å±¾
+purpose:Rbhhs	Ã„ÃšÂºÃ‹Â±Ã Ã’Ã«ÂµÃ„ÃÂ´Â½Ã“Ã†Ã·Â½Ã…Â±Â¾
 */
 
 ENTRY(start)
