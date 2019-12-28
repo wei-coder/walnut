@@ -5,30 +5,36 @@ time:  2018-11-21
 purpose: 系统时钟相关函数实现
 */
 
-_syscall1(time_t,time,time_t,t_loc);
+#include <types.h>
+#define __LIBRARY__
+#include <unistd.h>
+#include "time.h"
+#include "io.h"
 
 u8 mon_days[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+
+_syscall1(time_t,time,time_t *,t_loc)
 
 time_t mktime(struct tm * t)
 {
 	time_t now = 0;
-	now += t.tm_sec;
-	now += t.tm_min * 60;
-	now += t.tm_hour * 3600;
-	now += t.tm_day * 86400;
-	for(int i=0; i<t.tm_mon; i++)
+	now += t->tm_sec;
+	now += t->tm_min * 60;
+	now += t->tm_hour * 3600;
+	now += t->tm_day * 86400;
+	for(int i=0; i<t->tm_mon; i++)
 	{
 		now += mon_days[i] * 86400;
 	}
-	if(((t.tm_year+1900)%4 == 0) && ((t.tm_year + 1900)%100 != 0))
+	if(((t->tm_year+1900)%4 == 0) && ((t->tm_year + 1900)%100 != 0))
 	{
 		now += 86400;
 	}
-	if(t.tm_year < 70)
+	if(t->tm_year < 70)
 	{
 		return 0;
 	}
-	for(int i=1970; i<(t.tm_year+1900); i++)
+	for(int i=1970; i<(t->tm_year+1900); i++)
 	{
 		if((i%4 == 0) && (i%100 != 0))
 		{
@@ -46,7 +52,7 @@ void localtime(struct tm * _tm, time_t _time)
 {
 	int i = 0;
 	time_t remain = _time;
-	int second = 0
+	int second = 0;
 	while((remain - second)>0)
 	{
 		remain -= second;
@@ -85,7 +91,7 @@ void localtime(struct tm * _tm, time_t _time)
 	_tm->tm_wday = (4 + _time%(7*86400))%7;
 }
 
-time_t sys_time(long * tloc)
+int sys_time()
 {
 	struct tm now = {0};
 	
@@ -115,7 +121,6 @@ time_t sys_time(long * tloc)
 	cyear = inb_p(0x71);
 	now.tm_mon = 100 + (cyear&0x0F) + 10*((cyear&0xF0)>>4);
 	
-    *tloc = mktime(&now);
-	return *tloc;
+	return (int)mktime(&now);
 };
 

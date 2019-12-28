@@ -8,7 +8,7 @@ purpose:	定义了进入用户模式及设置用户进程相关的宏及数据
 #ifndef __SYSTEM_H
 #define __SYSTEM_H
 
-#include "pm.h"
+#include "../entry/pm.h"
 
 //// 切换到用户模式运行。
 // 该函数利用iret 指令实现从内核模式切换到用户模式（初始任务0）。

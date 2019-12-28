@@ -6,6 +6,7 @@ purpose:	walnutfs文件系统的函数实现。
 */
 
 #include "vfs.h"
+#include "walnutfs.h"
 
 static struct super_operations wfs_op = {
 	.alloc_inode = alloc_inode_wf,

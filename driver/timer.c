@@ -5,16 +5,12 @@ date:		2017-12
 purpose:	时钟中断相关函数定义
 */
 
+#include <system.h>
+#include <kio.h>
+#include "../util/logging.h"
+#include "../entry/pm.h"
+#include "../task/sched.h"
 #include "timer.h"
-#include "io.h"
-#include "pm.h"
-#include "console.h"
-#include "system.h"
-#include "trap_gate.h"
-#include "sched.h"
-#include "logging.h"
-
-extern int timer_interrupt (void);	// 时钟中断处理程序
 
 void timer_callback()
 {

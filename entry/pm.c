@@ -4,13 +4,13 @@ author:	wei-coder
 date:	2017-12
 purpose:	系统进入保护模式所需要的各项工作
 */
-#include "pm.h"
-#include "io.h"
-#include "string.h"
-#include "console.h"
-#include "system.h"
+#include <kio.h>
+#include <string.h>
+#include <system.h>
+#include "../util/logging.h"
 #include "trap_gate.h"
-#include "logging.h"
+#include "pm.h"
+
 
 /*全局描述符表的定义*/
 desc_t gdt_entry[GDT_ENTRY_LEN] = {0};

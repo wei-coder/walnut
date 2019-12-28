@@ -1,7 +1,4 @@
-#ifndef _SYS_UTSNAME_H
-#define _SYS_UTSNAME_H
-
-#include "unistd.h"
+#pragma once
 
 struct utsname {
     char sysname[10];
@@ -10,6 +7,3 @@ struct utsname {
     char version[10];
     char machine[10];
 };
-
-#endif
-

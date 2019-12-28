@@ -5,19 +5,19 @@ date:	2017-12
 prupose:	操作系统的入口函数
 */
 
-#include "types.h"
-#include "unistd.h"
-#include "console.h"
-#include "multiboot.h"
-#include "memory.h"
-#include "timer.h"
+#include <types.h>
+#include <unistd.h>
+#include <kio.h>
+#include <system.h>
+#include <multiboot.h>
+#include "../mm/memory.h"
+#include "../mm/heap.h"
+#include "../driver/timer.h"
+#include "../driver/hd.h"
+#include "../init/init.h"
+#include "../task/sched.h"
 #include "kern_debug.h"
-#include "heap.h"
-#include "system.h"
-#include "init.h"
-#include "sched.h"
 #include "trap_gate.h"
-#include "hd.h"
 
 // 开启分页机制之后的内核栈
 char user_stack[STACK_SIZE]  __attribute__ ((aligned(16)));

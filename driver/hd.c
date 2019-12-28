@@ -5,11 +5,11 @@ date:	2018-04
 prupose:	硬盘驱动的相关实现
 */
 
+#include <kio.h>
+#include <klib.h>
+#include <system.h>
+#include <string.h>
 #include "hd.h"
-#include "io.h"
-#include "pm.h"
-#include "system.h"
-#include "console.h"
 
 extern void hd_interrupt();
 extern ulong do_hd;

@@ -4,12 +4,12 @@ author:		wei-coder
 date:		2017-12
 purpose:	内核调试功能的相关函数定义
 */
+#include <string.h>
+#include <kio.h>
+#include <multiboot.h>
+#include "../util/logging.h"
+#include "../mm/mm.h"
 #include "kern_debug.h"
-#include "string.h"
-#include "console.h"
-#include "memory.h"
-#include "multiboot.h"
-#include "logging.h"
 
 static elf_t kernel_elf;
 extern multiboot_t *glb_mboot_ptr;

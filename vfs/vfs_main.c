@@ -5,15 +5,23 @@ time:  2018-09-12
 purpose: 虚拟文件系统的实现文件
 */
 
+#include <klib.h>
+#include <unistd.h>
+
+#include "../lib/kstring.h"
+#include "../task/sched.h"
+#include "../util/logging.h"
+#include "../mm/heap.h"
+
 #include "vfs.h"
 
 sb_t * g_sblk;
 fs_type_t * g_fslist;
 vfsmount_t * g_vfsmount;
 
-char * get_name_from_path(const char * pathname)
+const char * get_name_from_path(const char * pathname)
 {
-	char * name = NULL;
+	const char * name = NULL;
 	int path_len = strlen(pathname);
 	for(int i=path_len-1; i>=0; i--)
 	{
@@ -41,18 +49,18 @@ sb_t * sget(struct file_system_type * fstype)
 		}
 		s = (sb_t *)(s->s_list.next);
 	}
-	while(s != g_sblk)
+	while(s != g_sblk);
 	return NULL;
 }
 
-vfsmount_t * search_vfsmnt(char * dir)
+vfsmount_t * search_vfsmnt(const char * dir)
 {
 	vfsmount_t * vmnt = g_vfsmount;
 	vfsmount_t * sub_vmnt = VFS_CHILD_MOUNTS(vmnt->m_mount.next);
 	dlist_t * pdlist = create_dlist(NULL,NULL);
 	while(sub_vmnt)
 	{
-		if(0 == strcmp(sub_vmnt->m_mntpoint->d_iname, dir))
+		if(0 == strcmp((const char *)sub_vmnt->m_mntpoint->d_iname, dir))
 		{
 			pdlist->destroy(pdlist);
 			return sub_vmnt;
@@ -60,14 +68,14 @@ vfsmount_t * search_vfsmnt(char * dir)
 
 		if(NULL != sub_vmnt->m_child.next)
 		{
-			lnode_t * tmp_node1 = kmalloc(sizeof(lnode_t));
+			lnode_t * tmp_node1 = (lnode_t *)kmalloc(sizeof(lnode_t));
 			tmp_node1->pNode = (void *)(VFS_CHILD_MOUNTS(sub_vmnt->m_child.next));
 			pdlist->push(pdlist->head, tmp_node1);
 		}
 
 		if(NULL != sub_vmnt->m_mount.next)
 		{
-			lnode_t * tmp_node2 = kmalloc(sizeof(lnode_t));
+			lnode_t * tmp_node2 = (lnode_t *)kmalloc(sizeof(lnode_t));
 			tmp_node2->pNode = (void *)(VFS_CHILD_MOUNTS(sub_vmnt->m_mount.next));
 			pdlist->push(pdlist->head, tmp_node2);
 		}
@@ -78,17 +86,17 @@ vfsmount_t * search_vfsmnt(char * dir)
 	return NULL;
 }
 
-int search_subdir(path_t * root, char * dir)
+int search_subdir(path_t * root, const char * dir)
 {
 	ulong flag = 0;
 	dentry_t * d_root = root->p_dentry;
 	struct list_head * sub_dir = d_root->d_subdirs.next;
 	while(NULL != sub_dir)
 	{
-		if(0 == strcmp(VFS_CHILD_DENTRY(sub_dir)->d_iname, dir))
+		if(0 == strcmp((const char *)(VFS_CHILD_DENTRY(sub_dir)->d_iname), dir))
 		{
 			flag = VFS_CHILD_DENTRY(sub_dir)->d_flags;
-			if(DENTRY_FLAG_MNT == flag&(~DENTRY_FLAG_MNT))
+			if(flag & DENTRY_FLAG_MNT)
 			{
 				root->p_vmount = VFS_CHILD_MOUNTS(root->p_vmount->m_mount.next);
 				root->p_dentry = root->p_vmount->m_root;
@@ -120,7 +128,7 @@ int vfs_get_path(char * dir, path_t * cpath, int flag)
 		cpath->p_dentry = current->pwd.p_dentry;
 	}
 	char catalog[DNAME_LEN_MAX] = {0};
-	char * sub_dir = strchar(pointer, "/");
+	char * sub_dir = strchar(pointer, '/');
 	if(NULL == sub_dir)
 	{
 		dir_len = strlen(pointer);
@@ -144,8 +152,8 @@ int vfs_get_path(char * dir, path_t * cpath, int flag)
 				inode_t * tn = (inode_t *)kmalloc(sizeof(inode_t));
 				memset(td,0,sizeof(dentry_t));
 				dir_len = strlen(pointer);
-				strncpy(td->d_iname,catalog,dir_len<DNAME_LEN_MAX?dir_len:(DNAME_LEN_MAX-1));
-				if(td = cpath->p_dentry->d_inode->i_op->lookup(tn,td))
+				strncpy((char *)(td->d_iname), (const char *)catalog, dir_len<DNAME_LEN_MAX?dir_len:(DNAME_LEN_MAX-1));
+				if(td == cpath->p_dentry->d_inode->i_op->lookup(tn,td))
 				{
 					cpath->p_dentry = td;
 					return VFS_OK;
@@ -157,16 +165,30 @@ int vfs_get_path(char * dir, path_t * cpath, int flag)
 		{
 			break;
 		}
-		sub_dir = strchar(pointer, "/");
+		sub_dir = strchar(pointer, '/');
 		memset(catalog,0,DNAME_LEN_MAX);
 		strncpy(catalog,pointer,(size_t)(sub_dir-pointer));
 	}
 	return VFS_OK;
 }
 
+
+struct file_system_type * find_filesystem(char * fs_name)
+{
+	struct file_system_type * tmp = g_sblk->s_type;
+	while(NULL != tmp)
+	{
+		if(0 == strcmp(fs_name, tmp->name))
+		{
+			return tmp;
+		}
+		tmp = (struct file_system_type *)(tmp->s_list.next);
+	}
+	return NULL;
+}
+
 int sys_mount(char * dev_name, char * dir_name, char * type, unsigned long flags, void * data)
 {
-	dentry_t * root = NULL;
 	path_t s_path = {0};
 	if(VFS_FAIL == vfs_get_path(dev_name, &s_path, GET_PATH_FLAG_MEM))
 	{
@@ -239,7 +261,7 @@ void destroy_vfsmnt(vfsmount_t * vmnt)
 			destroy_dentry(sub_dentry);
 		}
 
-		sub_dentry = (vfsmount_t *)(pdlist->stack_pop(&(pdlist->head)));
+		sub_dentry = (dentry_t *)(pdlist->stack_pop(&(pdlist->head)));
 	}
 	free(pdlist);
 	destroy_dentry(root);
@@ -290,44 +312,44 @@ int sys_mknod(const char * filename, mode_t mode, dev_t dev)
 int sys_chmod(const char * filename, mode_t mode)
 {
 	path_t targ_path = {0};
-	if(VFS_FAIL == search_subdir(filename, &targ_path))
+	if(VFS_FAIL == search_subdir(&targ_path, filename))
 	{
 		return -1;
 	}
-	targ_path.p_dentry.d_inode->i_mode = mode;
+	targ_path.p_dentry->d_inode->i_mode = mode;
 	return 0;
 }
 
 int sys_chown(const char * filename, uid_t owner, gid_t group)
 {
 	path_t targ_path = {0};
-	if(VFS_FAIL == search_subdir(filename, &targ_path))
+	if(VFS_FAIL == search_subdir(&targ_path, filename))
 	{
 		return -1;
 	}
-	targ_path.p_dentry.d_inode->i_uid = owner;
-	targ_path.p_dentry.d_inode->i_gid = group;
+	targ_path.p_dentry->d_inode->i_uid = owner;
+	targ_path.p_dentry->d_inode->i_gid = group;
 	return 0;
 }
 
-int sys_link(const char * filename1, const char * filename2)
+int sys_link(char * filename1, const char * filename2)
 {
 	inode_t * pInode = (inode_t *)kmalloc(sizeof(inode_t));
 	dentry_t * pDentry = (dentry_t *)kmalloc(sizeof(dentry_t));
 	pDentry->d_inode = pInode;
 	path_t path = {0};
-	vfs_get_path(filename1,&path, GET_PATH_FLAG_MEM)
+	vfs_get_path(filename1, &path, GET_PATH_FLAG_MEM);
 	return current->pwd.p_dentry->d_inode->i_op->link(path.p_dentry,pInode,pDentry);
 }
 
-int sys_unlink(const char * filename)
+int sys_unlink(char * filename)
 {
 	path_t path = {0};
 	vfs_get_path(filename,&path, GET_PATH_FLAG_MEM);
 	return path.p_dentry->d_inode->i_op->unlink(path.p_dentry->d_inode, path.p_dentry);
 }
 
-int sys_chdir(const char * filename)
+int sys_chdir(char * filename)
 {
 	path_t path = {0};
 	vfs_get_path(filename,&path, GET_PATH_FLAG_MEM);
@@ -336,7 +358,7 @@ int sys_chdir(const char * filename)
 	return 0;
 }
 
-int sys_mkdir(const char *pathname, int mode)
+int sys_mkdir(char *pathname, int mode)
 {
 	path_t path = {0};
 	if(vfs_get_path(pathname,&path,GET_PATH_FLAG_ALL) == VFS_FAIL)
@@ -350,20 +372,20 @@ int sys_mkdir(const char *pathname, int mode)
 		return -1;
 	}
 	memset(pDentry,0,sizeof(dentry_t));
-	char * dirname = get_name_from_path(pathname);
+	const char * dirname = get_name_from_path(pathname);
 	int namelen = strlen(dirname);
-	strncpy(pDentry->d_iname,dirname,(namelen>DNAME_LEN_MAX?DNAME_LEN_MAX:namelen));
+	strncpy((char *)(pDentry->d_iname), dirname, (namelen<DNAME_LEN_MAX?namelen:DNAME_LEN_MAX));
 	pDentry->d_flags = mode;
 	pDentry->d_parent = path.p_dentry;
 	pDentry->d_op = path.p_dentry->d_op;
 	pDentry->d_sb = path.p_dentry->d_sb;
 	pDentry->d_time = time(0);
-	push_ring_list(&(path.p_dentry->d_subdirs),&(pDentry->d_child));
+	push_ring_list(&(path.p_dentry->d_subdirs), &(pDentry->d_child));
 	init_ring_list_head(&(pDentry->d_subdirs));
 	return current->pwd.p_dentry->d_inode->i_op->mkdir(path.p_dentry->d_inode,pDentry,mode);
 }
 
-int sys_rmdir(const char *pathname)
+int sys_rmdir(char *pathname)
 {
 	path_t path = {0};
 	if(VFS_FAIL == vfs_get_path(pathname,&path, GET_PATH_FLAG_ALL))
@@ -373,7 +395,7 @@ int sys_rmdir(const char *pathname)
 	return path.p_dentry->d_inode->i_op->rmdir(path.p_dentry->d_inode, path.p_dentry);
 }
 
-int sys_rename(const char *oldpath, const char * newpath)
+int sys_rename(char *oldpath, const char * newpath)
 {
 	path_t path = {0};
 	if(VFS_FAIL == vfs_get_path(oldpath, &path,GET_PATH_FLAG_ALL))
@@ -382,9 +404,9 @@ int sys_rename(const char *oldpath, const char * newpath)
 		return -1;
 	}
 
-	char * newname = get_name_from_path(newpath);
-	int name_len = strlen(newname);
-	strncpy(path.p_dentry->d_iname,newname,name_len<DNAME_LEN_MAX?newname:DNAME_LEN_MAX);
+	const char * newname = get_name_from_path(newpath);
+	size_t name_len = strlen(newname);
+	strncpy((char *)(path.p_dentry->d_iname), newname, (name_len<DNAME_LEN_MAX?name_len:DNAME_LEN_MAX));
 	return path.p_dentry->d_inode->i_op->rename(path.p_dentry->d_inode, path.p_dentry);
 }
 
@@ -400,49 +422,35 @@ inode_t *find_inode(u32 inode_no)
 			{
 				return tmp_inode;
 			}
-			tmp_inode = (inode_t *)(tmp_inode->i_list->next);
+			tmp_inode = (inode_t *)(tmp_inode->i_list.next);
 		}
-		tmp_sblk = (sb_t *)(tmp_sblk->s_list->next);
+		tmp_sblk = (sb_t *)(tmp_sblk->s_list.next);
 	}
 	return NULL;
 }
 
 int register_filesystem(fs_type_t* fs)
 {
-	struct list_head * tail = getlast_lh(g_fslist->s_list);
+	struct list_head * tail = getlast_lh(&g_fslist->s_list);
 	if(NULL == tail)
 	{
 		g_fslist = fs;
-		fs->s_list->next = NULL;
-		fs->s_list->prev = NULL;
+		fs->s_list.next = NULL;
+		fs->s_list.prev = NULL;
 	}
 	else
 	{
-		if(NULL == find_filesystem(fs->name, 0))
+		if(NULL == find_filesystem(fs->name))
 		{
-			tail->next = fs->s_list;
-			fs->s_list->prev = tail;
-			fs->s_list->next = NULL;
+			tail->next = &fs->s_list;
+			fs->s_list.prev = tail;
+			fs->s_list.next = NULL;
 		}
 	}
 	return KER_SUC;
 }
 
-struct file_system_type * find_filesystem(char * fs_name)
-{
-	struct file_system_type * tmp = g_sblk->s_type;
-	while(NULL != tmp)
-	{
-		if(0 == strcmp(fs_name, tmp->name))
-		{
-			return tmp;
-		}
-		tmp = (struct file_system_type *)(tmp->s_list->next);
-	}
-	return NULL;
-}
-
 void init_fs()
 {
-
+	return;
 }

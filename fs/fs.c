@@ -3,8 +3,7 @@ author:wei-coder
 time:  2018-10-20
 purpose: 文件系统的用户侧接口函数*/
 
-#include "vfs.h"
-#include "unistd.h"
+#include <unistd.h>
 
 _syscall2(int,open,const char *,filename,int,flag);
 _syscall3(int,read,int,fd,char *,buf,off_t,count);

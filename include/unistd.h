@@ -55,8 +55,9 @@
 #define _PC_VDISABLE            8
 #define _PC_CHOWN_RESTRICTED    9
 
+#include "../driver/timer.h"
+#include "../vfs/file.h"
 #include "types.h"
-#include "timer.h"
 #include "utsname.h"
 
 #ifdef __LIBRARY__
@@ -233,7 +234,7 @@ int setpgid(pid_t pid,pid_t pgid);
 int setuid(uid_t uid);
 int setgid(gid_t gid);
 void (*signal(int sig, void (*fn)(int)))(int);
-int stat(const char * filename, struct stat * stat_buf);
+int stat(char * filename, struct stat * stat_buf);
 int fstat(int fd, struct stat * stat_buf);
 int stime(time_t * tptr);
 int sync(void);
@@ -242,7 +243,7 @@ time_t times(struct tms * tbuf);
 int ulimit(int cmd, long limit);
 mode_t umask(mode_t mask);
 int umount(const char * specialfile);
-void uname(struct utsname * name);
+int uname(struct utsname * name);
 int unlink(const char * filename);
 int ustat(dev_t dev, u32 * ubuf);
 int utime(const char * filename, u32 * times);

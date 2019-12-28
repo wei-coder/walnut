@@ -5,14 +5,12 @@ date:		2018-1
 purpose:	定义了进程调度相关的处理函数
 */
 
-#if 1
+#include <kio.h>
+#include <system.h>
+#include "../entry/pm.h"
+#include "../driver/timer.h"
+#include "../util/logging.h"
 #include "sched.h"
-#include "console.h"
-#include "pm.h"
-#include "system.h"
-#include "io.h"
-#include "timer.h"
-#include "logging.h"
 
 
 extern int timer_interrupt (void);	// 时钟中断处理程序
@@ -21,7 +19,7 @@ extern int system_call(void);	// 系统调用中断处理程序(kernel/system_call.s,80)。
 /*全局描述符表的定义*/
 extern desc_t gdt_entry[GDT_ENTRY_LEN] ;
 
-static union task_union init_task = { INIT_TASK, };							// 定义初始任务的数据
+static union task_union init_task = {INIT_TASK,};							// 定义初始任务的数据
 tss_struct tss = INIT_TSS;
 long volatile jiffies;														// 从开机开始算起的滴答数时间值（10ms/滴答）。
 long startup_time;														// 开机时间。从1970:0:0:0 开始计时的秒数。
@@ -174,5 +172,3 @@ void sched_init (void)
 	set_system_gate (0x80, &system_call);
 	logging("init process schedule is success!\n");
 }
-
-#endif

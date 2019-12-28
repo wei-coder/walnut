@@ -4,13 +4,16 @@ author:		暂时借用了linux0.11的实现
 date:		2018-1
 purpose:	系统调用的相关函数实现
 */
-#if 1
-#include "syscall.h"
-#include "memory.h"
-#include "console.h"
-#include "errorno.h"
-#include "vfs.h"
+#include <kio.h>
+#define __LIBRARY__
+#include <unistd.h>
+#include <utsname.h>
+#include "../vfs/vfs.h"
+#include "../mm/memory.h"
+#include "../driver/timer.h"
 #include "utsname.h"
+#include "errorno.h"
+#include "syscall.h"
 
 extern long volatile jiffies;							// 从开机开始算起的滴答数时间值（10ms/滴答）。
 extern long startup_time;								// 开机时间。从1970:0:0:0 开始计时的秒数。
@@ -20,7 +23,7 @@ extern struct task_struct *task[NR_TASKS];				// 定义任务指针数组。
 ulong do_hd;
 ulong do_floppy;
 
-_syscall1(void,uname,struct utsname *,utsbuf);
+_syscall1(int,uname,struct utsname *,utsbuf);
 
 
 //// 时钟中断C 函数处理程序，在kernel/system_call.s 中的_timer_interrupt（176 行）被调用。
@@ -451,12 +454,12 @@ int sys_setpgid(int pid, int pgid)
 		}
 	}
 	return -ESRCH;
-};
+}
 
 int sys_getpgrp(void)
 {
     return current->pgrp;
-};
+}
 
 // 创建一个会话(session)（即设置其leader=1），并且设置其会话号=其组号=其进程号。
 // setsid -- SET Session ID。
@@ -474,23 +477,23 @@ int sys_setsid(void)
     // 表示当前进程没有控制终端。
     current->tty = -1;
     return current->pgrp;
-};
+}
 
 // 获取系统信息。其中utsname 结构包含5 个字段，分别是：本版本操作系统的名称、网络节点名称、
 // 当前发行级别、版本级别和硬件类型名称。
-void sys_uname(struct utsname * name)
+int sys_uname(struct utsname * name)
 {
 	if(NULL == name)
 	{
-		return;
+		return -1;
 	}
 	sprintf(name->machine, "x86-32");
 	sprintf(name->nodename,"N/A");
 	sprintf(name->release, "r1");
 	sprintf(name->sysname, "walnut");
 	sprintf(name->version, "v1");
-    return;
-};
+    return 0;
+}
 
 // 设置当前进程创建文件属性屏蔽码为mask & 0777。并返回原屏蔽码。
 int sys_umask(int mask)
@@ -499,8 +502,4 @@ int sys_umask(int mask)
 
     current->umask = mask & 0777;
     return (old);
-};
-
-
-#endif
-
+}

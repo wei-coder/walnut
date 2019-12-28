@@ -3,6 +3,12 @@ author:wei-coder
 time:  2018-10-20
 purpose: file对象的实现文件*/
 
+#include <unistd.h>
+#include <karg.h>
+#include <string.h>
+#include "../mm/heap.h"
+#include "../task/sched.h"
+#include "vfs.h"
 #include "file.h"
 
 fd_t * getfile(int fd)
@@ -25,7 +31,7 @@ int get_fd(int min)
 	{
 		for(int j = min%(8*sizeof(ulong)); j<8*sizeof(ulong); j++)
 		{
-			if(current->flist->fmap[i]&(1<<j)
+			if(current->flist.fmap[i]&(1<<j))
 			{
 				return i*(8*sizeof(ulong))+j;
 			}
@@ -34,17 +40,17 @@ int get_fd(int min)
 	return -1;
 }
 
-inline void set_fd(int fd)
+static inline void set_fd(int fd)
 {
-	current->flist->fmap[fd/(8*sizeof(ulong))] |= 1<<(fd%(8*sizeof(ulong)));
+	current->flist.fmap[fd/(8*sizeof(ulong))] |= 1<<(fd%(8*sizeof(ulong)));
 }
 
-inline void reset_fd(int fd)
+static inline void reset_fd(int fd)
 {
-	current->flist->fmap[fd/(8*sizeof(ulong))] &= ~(1<<(fd%(8*sizeof(ulong))));
+	current->flist.fmap[fd/(8*sizeof(ulong))] &= ~(1<<(fd%(8*sizeof(ulong))));
 }
 
-u32 sys_read(int fd, char * buf, int len)
+int sys_read(int fd, char * buf, int len)
 {
 	fd_t * this_fd =  getfile(fd);
 	if(NULL == this_fd)
@@ -54,7 +60,7 @@ u32 sys_read(int fd, char * buf, int len)
 	return this_fd->pfile->f_op->read(this_fd->pfile,buf,len);
 }
 
-u32 sys_write(int fd, const char * buf, int len)
+int sys_write(int fd, char * buf, int len)
 {
 	fd_t * this_fd =  getfile(fd);
 	if(NULL == this_fd)
@@ -64,11 +70,10 @@ u32 sys_write(int fd, const char * buf, int len)
 	return this_fd->pfile->f_op->write(this_fd->pfile,buf,len);
 }
 
-int sys_open(const char * filename, int flags)
+int sys_open(char * filename, int flags)
 {
 	path_t path = {0};
-	char * pname = filename;
-	if(VFS_OK == vfs_get_path(filename,&path,GET_PATH_FLAG_ALL))
+	if(VFS_OK == vfs_get_path(filename, &path, GET_PATH_FLAG_ALL))
 	{
 		file_t * newfile = (file_t*)kmalloc(sizeof(file_t));
 		newfile->f_count = 1;
@@ -90,8 +95,8 @@ int sys_open(const char * filename, int flags)
 		{
 			newfd->fdnode.next = &(current->flist.phead->fdnode);
 			newfd->fdnode.prev = current->flist.phead->fdnode.prev;
-			current->flist.phead->fdnode.prev->next = (struct list_head)(newfd);
-			current->flist.phead->fdnode.prev = (struct list_head)(newfd);
+			current->flist.phead->fdnode.prev->next = &(newfd->fdnode);
+			current->flist.phead->fdnode.prev = &(newfd->fdnode);
 		}
 		set_fd(newfd->fno);
 		return newfd->fno;
@@ -122,40 +127,35 @@ int sys_close(int fd)
 int sys_create(const char * filename, int mode)
 {
 	path_t path = {0};
-	int namelen = strlen(filename);
-	char *pointer = filename+namelen;
+	size_t namelen = strlen(filename);
+	char *pointer = (char *)(filename+namelen);
 	while(*(--pointer)!= '/')
 	{
 		/*do nothing*/;
 	}
 	namelen = namelen-strlen(pointer);
-	char * pathname = kmalloc(namelen+1);
+	char * pathname = (char *)kmalloc(namelen+1);
 	strncpy(pathname,filename,namelen);
 	if(VFS_OK == vfs_get_path(pathname,&path, GET_PATH_FLAG_ALL))
 	{
 		return -1;
 	}
-	dentry_t * newdentry = kmalloc(sizeof(dentry_t));
-	memset(newdentry,0,sizeof(dentry_t));
+	dentry_t * newdentry = (dentry_t *)kmalloc(sizeof(dentry_t));
+	memset((void *)newdentry, 0, sizeof(dentry_t));
 	pointer ++;
-	namelen = strlen(pointer);
-	strncpy(newdentry->d_iname,pointer,namelen<DNAME_LEN_MAX?namelen:DNAME_LEN_MAX);
+	namelen = strlen((const char *)pointer);
+	strncpy((char *)(newdentry->d_iname), pointer, (namelen<DNAME_LEN_MAX?namelen:DNAME_LEN_MAX));
 	newdentry->d_parent = path.p_dentry;
 	newdentry->d_subdirs.next = NULL;
 	newdentry->d_subdirs.prev = NULL;
-	newdentry->d_child.next = &(path.p_dentry.d_subdirs);
-	newdentry->d_child.prev = path.p_dentry.d_subdirs.prev;
+	newdentry->d_child.next = &(path.p_dentry->d_subdirs);
+	newdentry->d_child.prev = path.p_dentry->d_subdirs.prev;
 	path.p_dentry->d_subdirs.prev->next = &(newdentry->d_child);
 	path.p_dentry->d_subdirs.prev = &(newdentry->d_child);
 	newdentry->d_op = path.p_dentry->d_op;
 	newdentry->d_sb = path.p_dentry->d_sb;
 	newdentry->d_time = time(0);
-	inode_t * pinode = path.p_dentry->d_inode->i_op->create(path.p_dentry->d_inode,newdentry,mode);
-	if(NULL == pinode)
-	{
-		return -1;
-	}
-	return 0
+	return path.p_dentry->d_inode->i_op->create(path.p_dentry->d_inode,newdentry,mode);;
 }
 
 int sys_lseek(int fd, u32 offset, int where)
@@ -251,8 +251,8 @@ int sys_fcntl(int fd, int cmd, ...)
 	return 0;
 }
 
-int stat(const char *file_name, struct stat *buf)
+int sys_stat(char * filename, struct stat * stat_buf)
 {
 	int fd = sys_open(filename, O_R);
-	return sys_fstat(fd, buf);
+	return sys_fstat(fd, stat_buf);
 }

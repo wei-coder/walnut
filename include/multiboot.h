@@ -6,7 +6,7 @@ filename:	multiboot.h
 #ifndef __MULTIBOOT_H
 #define __MULTIBOOT_H
 
-#include "types.h"
+#include <types.h>
 
 /**
  * 启动后，在32位内核进入点，机器状态如下：

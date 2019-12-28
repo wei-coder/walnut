@@ -5,12 +5,11 @@ date:2018-1
 purpose:系统陷阱门的初始化
 */
 
-#include "trap_gate.h"
-#include "console.h"
-#include "sched.h"
-#include "memory.h"
+#include <kio.h>
+#include "../mm/memory.h"
+#include "../task/sched.h"
 #include "pm.h"
-#include "io.h"
+#include "trap_gate.h"
 
 // 取段seg 中地址addr 处的一个字节。
 #define get_seg_byte(seg,addr) ({ \

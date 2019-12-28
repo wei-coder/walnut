@@ -5,8 +5,9 @@ date:		2017-12
 purpose:	堆内存管理的相关函数实现
 */
 
+#include <kio.h>
 #include "heap.h"
-#include "console.h"
+#include "memory.h"
 
 // 申请内存块
 static u32 alloc_chunk(u32 start, u32 len);
@@ -269,14 +270,4 @@ void test_heap()
 	printf("free mem in 0x%08X\n\n", addr4);
 	kfree(addr4);
 }
-
-void* malloc(u32 len)
-{
-	return kmalloc(len);
-};
-void free(void* p)
-{
-	kfree(p);
-	return;
-};
 
