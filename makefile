@@ -55,7 +55,7 @@ umount_image:
 
 .PHONY:qemu
 qemu:
-	qemu -fda walnut.img -boot a
+	qemu-system-i386 -fda walnut.img /mnt/share/walnut.vhd -boot a
 
 .PHONY:bochs
 bochs:
@@ -63,6 +63,6 @@ bochs:
 
 .PHONY:debug
 debug:
-	qemu -S -s -fda walnut.img -hda ../share/walnut_hd.vhd -boot a &
+	qemu-system-i386 -S -s -fda walnut.img -hda /mnt/share/walnut.vhd -boot a &
 	sleep 1
 	gdb -x gdbinit
