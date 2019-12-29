@@ -9,7 +9,7 @@ C_OBJECTS = $(patsubst %.c, %.o, $(C_SOURCES))
 
 CC = gcc
 
-C_FLAGS = -c -Wall -m32 -ggdb -gstabs+ -nostdinc -fno-builtin -fno-stack-protector -I $(INCDIR)
+C_FLAGS = -c -Wall -m32 -ggdb -gstabs+ -nostdinc -fno-builtin -fno-stack-protector -fno-pie -I $(INCDIR)
 ASM_FLAGS = -f elf -g -F stabs
 
 all: $(C_OBJECTS) copy

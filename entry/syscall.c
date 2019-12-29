@@ -41,8 +41,10 @@ void do_timer (long cpl)
 	if ((--current->counter) > 0)
 		return;			// 如果进程运行时间还没完，则退出。
 	current->counter = 0;
-	if (!cpl)
+	if (!cpl){
+		//printf("do_timer current task_%ld counter: %ld cpl:%d\n", current->pid, current->counter, cpl);
 		return;			// 对于超级用户程序，不依赖counter 值进行调度。
+	}
 	schedule();
 }
 

@@ -61,7 +61,7 @@ void schedule (void)
     {
         c = -1;
         next = 0;
-        i = 65;
+        i = NR_TASKS+1;
         p = &task[NR_TASKS];
         // 这段代码也是从任务数组的最后一个任务开始循环处理，并跳过不含任务的数组槽。比较每个就绪
         // 状态任务的counter（任务运行时间的递减滴答计数）值，哪一个值大，运行时间还不长，next 就
@@ -75,7 +75,8 @@ void schedule (void)
             
             if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
             {
-                c = (*p)->counter, next = i-1;
+                c = (*p)->counter;
+				next = i-1;
             }
         }
         

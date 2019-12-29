@@ -11,6 +11,8 @@ purpose:  定义了用户态的第一个进程
 
 void init(void)
 {
-	printf("current process is %d!\n", current->pid);
+	while(1){
+		printf("this is process init_%d!\n", current->pid);
+	}
 }
 

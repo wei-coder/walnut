@@ -45,10 +45,10 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/heap.o
  .eh_frame      0x0000000000000000      0x170 /mnt/walnut/build/heap.o
  .group         0x0000000000000000        0x8 /mnt/walnut/build/init.o
- .text.__x86.get_pc_thunk.ax
+ .text.__x86.get_pc_thunk.bx
                 0x0000000000000000        0x4 /mnt/walnut/build/init.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/init.o
- .eh_frame      0x0000000000000000       0x50 /mnt/walnut/build/init.o
+ .eh_frame      0x0000000000000000       0x48 /mnt/walnut/build/init.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/io.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/kern_debug.o
  .eh_frame      0x0000000000000000       0xdc /mnt/walnut/build/kern_debug.o
@@ -71,7 +71,7 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/logging.o
  .eh_frame      0x0000000000000000       0x50 /mnt/walnut/build/logging.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/main.o
- .eh_frame      0x0000000000000000       0x64 /mnt/walnut/build/main.o
+ .eh_frame      0x0000000000000000       0x68 /mnt/walnut/build/main.o
  .group         0x0000000000000000        0x8 /mnt/walnut/build/memory.o
  .text.__x86.get_pc_thunk.ax
                 0x0000000000000000        0x4 /mnt/walnut/build/memory.o
@@ -98,12 +98,8 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/pipe.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/pm.o
  .eh_frame      0x0000000000000000       0xa0 /mnt/walnut/build/pm.o
- .group         0x0000000000000000        0x8 /mnt/walnut/build/sched.o
- .group         0x0000000000000000        0x8 /mnt/walnut/build/sched.o
- .text.__x86.get_pc_thunk.bx
-                0x0000000000000000        0x4 /mnt/walnut/build/sched.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/sched.o
- .eh_frame      0x0000000000000000       0xe4 /mnt/walnut/build/sched.o
+ .eh_frame      0x0000000000000000       0xa8 /mnt/walnut/build/sched.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/signal.o
  .comment       0x0000000000000000       0x2c /mnt/walnut/build/syscall.o
  .eh_frame      0x0000000000000000      0x764 /mnt/walnut/build/syscall.o
@@ -111,8 +107,6 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
  .group         0x0000000000000000        0x8 /mnt/walnut/build/time.o
  .group         0x0000000000000000        0x8 /mnt/walnut/build/time.o
  .text.__x86.get_pc_thunk.ax
-                0x0000000000000000        0x4 /mnt/walnut/build/time.o
- .text.__x86.get_pc_thunk.dx
                 0x0000000000000000        0x4 /mnt/walnut/build/time.o
  .text.__x86.get_pc_thunk.bx
                 0x0000000000000000        0x4 /mnt/walnut/build/time.o
@@ -221,74 +215,74 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
                 0x00000000c0103568                kmalloc
                 0x00000000c0103669                kfree
                 0x00000000c0103adc                test_heap
- .text          0x00000000c0103c33       0x3a /mnt/walnut/build/init.o
+ .text          0x00000000c0103c33       0x35 /mnt/walnut/build/init.o
                 0x00000000c0103c33                init
- .text          0x00000000c0103c6d        0x0 /mnt/walnut/build/io.o
- .text          0x00000000c0103c6d      0x38c /mnt/walnut/build/kern_debug.o
-                0x00000000c0103c6d                elf_from_multiboot
-                0x00000000c0103d9e                init_debug
-                0x00000000c0103ded                elf_lookup_symbol
-                0x00000000c0103eb8                print_cur_status
-                0x00000000c0103f75                panic
-                0x00000000c0103fa6                print_stack_trace
- .text          0x00000000c0103ff9      0x624 /mnt/walnut/build/kstring.o
-                0x00000000c0104070                memcmp
-                0x00000000c01040ba                memset
-                0x00000000c01040f4                memcpy
-                0x00000000c0104136                strcpy
-                0x00000000c010416f                strncpy
-                0x00000000c01041b5                strcmp
-                0x00000000c0104221                strncmp
-                0x00000000c010428b                strnlen
-                0x00000000c01042c7                atou
-                0x00000000c0104375                simple_strtoull
-                0x00000000c010447f                strlen
-                0x00000000c01044be                strstr
-                0x00000000c0104528                strchar
-                0x00000000c0104578                strtok
- .text          0x00000000c010461d      0x7df /mnt/walnut/build/list.o
-                0x00000000c010461d                que_pop
-                0x00000000c010469a                stack_pop
-                0x00000000c010470f                push
-                0x00000000c0104771                insert_slist
-                0x00000000c01047fb                del_slist
-                0x00000000c01048a0                destroy_slist
-                0x00000000c0104914                search_slist
-                0x00000000c010497a                create_slist
-                0x00000000c0104a39                insert_dlist
-                0x00000000c0104ae2                del_dlist
-                0x00000000c0104b9d                destroy_dlist
-                0x00000000c0104c1d                search_dlist
-                0x00000000c0104c83                create_dlist
-                0x00000000c0104d29                getlast_lh
-                0x00000000c0104d62                list_head_del_node
-                0x00000000c0104dbe                push_ring_list
- .text          0x00000000c0104dfc       0x52 /mnt/walnut/build/logging.o
-                0x00000000c0104dfc                logging
- .text          0x00000000c0104e4e      0x100 /mnt/walnut/build/main.o
-                0x00000000c0104e4e                entry_kernel
- .text          0x00000000c0104f4e       0x4d /mnt/walnut/build/memory.o
-                0x00000000c0104f4e                malloc
-                0x00000000c0104f74                free
- .text          0x00000000c0104f9b      0xa2a /mnt/walnut/build/mm.o
-                0x00000000c0104f9b                show_mem_map
-                0x00000000c010503c                init_pmm
-                0x00000000c01051c4                free_page
-                0x00000000c0105241                alloc_page
-                0x00000000c01052b7                do_no_page
-                0x00000000c0105302                un_wp_page
-                0x00000000c0105402                do_wp_page
-                0x00000000c0105472                get_virt_page
-                0x00000000c01054a1                free_virt_page
-                0x00000000c01054c8                init_vmm
-                0x00000000c01055cd                map
-                0x00000000c0105684                unmap
-                0x00000000c01056f5                get_mapping
-                0x00000000c0105793                copy_page_tables
-                0x00000000c0105922                free_page_tables
- .text          0x00000000c01059c5        0x0 /mnt/walnut/build/mmap.o
- .text          0x00000000c01059c5        0x0 /mnt/walnut/build/msg_qeue.o
- *fill*         0x00000000c01059c5        0xb 
+ .text          0x00000000c0103c68        0x0 /mnt/walnut/build/io.o
+ .text          0x00000000c0103c68      0x38c /mnt/walnut/build/kern_debug.o
+                0x00000000c0103c68                elf_from_multiboot
+                0x00000000c0103d99                init_debug
+                0x00000000c0103de8                elf_lookup_symbol
+                0x00000000c0103eb3                print_cur_status
+                0x00000000c0103f70                panic
+                0x00000000c0103fa1                print_stack_trace
+ .text          0x00000000c0103ff4      0x624 /mnt/walnut/build/kstring.o
+                0x00000000c010406b                memcmp
+                0x00000000c01040b5                memset
+                0x00000000c01040ef                memcpy
+                0x00000000c0104131                strcpy
+                0x00000000c010416a                strncpy
+                0x00000000c01041b0                strcmp
+                0x00000000c010421c                strncmp
+                0x00000000c0104286                strnlen
+                0x00000000c01042c2                atou
+                0x00000000c0104370                simple_strtoull
+                0x00000000c010447a                strlen
+                0x00000000c01044b9                strstr
+                0x00000000c0104523                strchar
+                0x00000000c0104573                strtok
+ .text          0x00000000c0104618      0x7df /mnt/walnut/build/list.o
+                0x00000000c0104618                que_pop
+                0x00000000c0104695                stack_pop
+                0x00000000c010470a                push
+                0x00000000c010476c                insert_slist
+                0x00000000c01047f6                del_slist
+                0x00000000c010489b                destroy_slist
+                0x00000000c010490f                search_slist
+                0x00000000c0104975                create_slist
+                0x00000000c0104a34                insert_dlist
+                0x00000000c0104add                del_dlist
+                0x00000000c0104b98                destroy_dlist
+                0x00000000c0104c18                search_dlist
+                0x00000000c0104c7e                create_dlist
+                0x00000000c0104d24                getlast_lh
+                0x00000000c0104d5d                list_head_del_node
+                0x00000000c0104db9                push_ring_list
+ .text          0x00000000c0104df7       0x52 /mnt/walnut/build/logging.o
+                0x00000000c0104df7                logging
+ .text          0x00000000c0104e49      0x10e /mnt/walnut/build/main.o
+                0x00000000c0104e49                entry_kernel
+ .text          0x00000000c0104f57       0x4d /mnt/walnut/build/memory.o
+                0x00000000c0104f57                malloc
+                0x00000000c0104f7d                free
+ .text          0x00000000c0104fa4      0xa2a /mnt/walnut/build/mm.o
+                0x00000000c0104fa4                show_mem_map
+                0x00000000c0105045                init_pmm
+                0x00000000c01051cd                free_page
+                0x00000000c010524a                alloc_page
+                0x00000000c01052c0                do_no_page
+                0x00000000c010530b                un_wp_page
+                0x00000000c010540b                do_wp_page
+                0x00000000c010547b                get_virt_page
+                0x00000000c01054aa                free_virt_page
+                0x00000000c01054d1                init_vmm
+                0x00000000c01055d6                map
+                0x00000000c010568d                unmap
+                0x00000000c01056fe                get_mapping
+                0x00000000c010579c                copy_page_tables
+                0x00000000c010592b                free_page_tables
+ .text          0x00000000c01059ce        0x0 /mnt/walnut/build/mmap.o
+ .text          0x00000000c01059ce        0x0 /mnt/walnut/build/msg_qeue.o
+ *fill*         0x00000000c01059ce        0x2 
  .text          0x00000000c01059d0       0x37 /mnt/walnut/build/page.o
                 0x00000000c01059d0                page_fault
  .text          0x00000000c0105a07      0x198 /mnt/walnut/build/pci.o
@@ -299,164 +293,164 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
                 0x00000000c0105c0b                init_gdt
                 0x00000000c0105ce7                idt_set_gate
                 0x00000000c0105d51                init_idt
- .text          0x00000000c01060c5      0x324 /mnt/walnut/build/sched.o
+ .text          0x00000000c01060c5      0x2af /mnt/walnut/build/sched.o
                 0x00000000c01060c5                show_task
-                0x00000000c0106148                show_stat
-                0x00000000c010619a                schedule
-                0x00000000c01062c8                sched_init
- .text          0x00000000c01063e9        0x0 /mnt/walnut/build/signal.o
- *fill*         0x00000000c01063e9        0x7 
- .text          0x00000000c01063f0      0x1bb /mnt/walnut/build/sys_call.o
-                0x00000000c0106400                system_call
-                0x00000000c0106434                ret_from_sys_call
-                0x00000000c010647a                coprocessor_error
-                0x00000000c010649c                device_not_available
-                0x00000000c01064d5                timer_interrupt
-                0x00000000c010650c                sys_execve
-                0x00000000c010651a                sys_fork
-                0x00000000c0106532                hd_interrupt
-                0x00000000c010656e                floppy_interrupt
-                0x00000000c01065a4                parallel_interrupt
- .text          0x00000000c01065ab      0x6f3 /mnt/walnut/build/syscall.o
-                0x00000000c01065ab                uname
-                0x00000000c01065e1                do_timer
-                0x00000000c010664b                sys_alarm
-                0x00000000c01066b6                sys_getpid
-                0x00000000c01066c6                sys_getppid
-                0x00000000c01066d6                sys_getuid
-                0x00000000c01066ea                sys_geteuid
-                0x00000000c01066fe                sys_getgid
-                0x00000000c0106712                sys_getegid
-                0x00000000c0106726                sys_nice
-                0x00000000c0106752                sys_setup
-                0x00000000c010675c                sys_waitpid
-                0x00000000c0106766                sys_exit
-                0x00000000c0106770                sys_pause
-                0x00000000c010677a                sys_utime
-                0x00000000c0106784                sys_access
-                0x00000000c010678e                sys_sync
-                0x00000000c0106798                sys_kill
-                0x00000000c01067a2                sys_dup
-                0x00000000c01067ac                sys_pipe
-                0x00000000c01067b6                sys_signal
-                0x00000000c01067c0                sys_ioctl
-                0x00000000c01067ca                sys_chroot
-                0x00000000c01067d4                sys_ustat
-                0x00000000c01067de                sys_dup2
-                0x00000000c01067e8                sys_sigaction
-                0x00000000c01067f2                sys_sgetmask
-                0x00000000c01067fc                sys_ssetmask
-                0x00000000c0106806                do_signal
-                0x00000000c010680c                math_error
-                0x00000000c0106812                math_state_restore
-                0x00000000c0106818                math_emulate
-                0x00000000c010684b                do_execve
-                0x00000000c0106855                unexpected_hd_interrupt
-                0x00000000c010686e                unexpected_floppy_interrupt
-                0x00000000c0106874                sys_ftime
-                0x00000000c010687e                sys_break
-                0x00000000c0106888                sys_ptrace
-                0x00000000c0106892                sys_stty
-                0x00000000c010689c                sys_gtty
-                0x00000000c01068a6                sys_prof
-                0x00000000c01068b0                sys_setregid
-                0x00000000c0106946                sys_setgid
-                0x00000000c0106959                sys_acct
-                0x00000000c0106963                sys_phys
-                0x00000000c010696d                sys_lock
-                0x00000000c0106977                sys_mpx
-                0x00000000c0106981                sys_ulimit
-                0x00000000c010698b                sys_setreuid
-                0x00000000c0106a2d                sys_setuid
-                0x00000000c0106a40                sys_stime
-                0x00000000c0106a4a                sys_times
-                0x00000000c0106a54                sys_brk
-                0x00000000c0106a97                sys_setpgid
-                0x00000000c0106b64                sys_getpgrp
-                0x00000000c0106b74                sys_setsid
-                0x00000000c0106be1                sys_uname
-                0x00000000c0106c6b                sys_umask
- .text          0x00000000c0106c9e      0x564 /mnt/walnut/build/time.o
-                0x00000000c0106c9e                time
-                0x00000000c0106ce4                mktime
-                0x00000000c0106e0f                localtime
-                0x00000000c010701d                sys_time
- .text          0x00000000c0107202       0xa4 /mnt/walnut/build/timer.o
-                0x00000000c0107202                timer_callback
-                0x00000000c010723c                init_timer
- .text          0x00000000c01072a6      0x3ed /mnt/walnut/build/trap_gate.o
-                0x00000000c0107422                do_double_fault
-                0x00000000c0107441                do_general_protection
-                0x00000000c0107460                do_divide_error
-                0x00000000c010747f                do_int3
-                0x00000000c010750e                do_nmi
-                0x00000000c010752d                do_debug
-                0x00000000c010754c                do_overflow
-                0x00000000c010756b                do_bounds
-                0x00000000c010758a                do_invalid_op
-                0x00000000c01075a9                do_device_not_available
-                0x00000000c01075c8                do_coprocessor_segment_overrun
-                0x00000000c01075e7                do_invalid_TSS
-                0x00000000c0107606                do_segment_not_present
-                0x00000000c0107625                do_stack_segment
-                0x00000000c0107644                do_coprocessor_error
-                0x00000000c0107674                do_reserved
- *fill*         0x00000000c0107693        0xd 
- .text          0x00000000c01076a0       0xd5 /mnt/walnut/build/traps.o
-                0x00000000c01076a0                divide_error
-                0x00000000c01076d5                debug
-                0x00000000c01076dc                nmi
-                0x00000000c01076e3                int3
-                0x00000000c01076ea                overflow
-                0x00000000c01076f1                bounds
-                0x00000000c01076f8                invalid_op
-                0x00000000c01076ff                coprocessor_segment_overrun
-                0x00000000c0107706                reserved
-                0x00000000c010770d                irq13
-                0x00000000c0107722                double_fault
-                0x00000000c0107759                invalid_TSS
-                0x00000000c0107760                segment_not_present
-                0x00000000c0107767                stack_segment
-                0x00000000c010776e                general_protection
- .text          0x00000000c0107775       0x10 /mnt/walnut/build/tree.o
-                0x00000000c0107775                travel_tree
- .text          0x00000000c0107785      0x89b /mnt/walnut/build/vfs_file.o
-                0x00000000c0107785                getfile
-                0x00000000c01077d2                get_fd
-                0x00000000c01078f4                sys_read
-                0x00000000c0107942                sys_write
-                0x00000000c0107990                sys_open
-                0x00000000c0107b1e                sys_close
-                0x00000000c0107ba3                sys_create
-                0x00000000c0107d42                sys_lseek
-                0x00000000c0107df3                sys_fstat
-                0x00000000c0107f3b                sys_fcntl
-                0x00000000c0107fea                sys_stat
- .text          0x00000000c0108020      0xea4 /mnt/walnut/build/vfs_main.o
-                0x00000000c0108020                get_name_from_path
-                0x00000000c010808a                sget
-                0x00000000c01080f8                search_vfsmnt
-                0x00000000c0108222                search_subdir
-                0x00000000c01082c8                vfs_get_path
-                0x00000000c01084b9                find_filesystem
-                0x00000000c0108511                sys_mount
-                0x00000000c010864e                destroy_dentry
-                0x00000000c0108675                destroy_vfsmnt
-                0x00000000c01087cc                sys_umount
-                0x00000000c0108929                sys_mknod
-                0x00000000c010894e                sys_chmod
-                0x00000000c01089a5                sys_chown
-                0x00000000c0108a10                sys_link
-                0x00000000c0108a9b                sys_unlink
-                0x00000000c0108aee                sys_chdir
-                0x00000000c0108b4e                sys_mkdir
-                0x00000000c0108cb3                sys_rmdir
-                0x00000000c0108d12                sys_rename
-                0x00000000c0108dd0                find_inode
-                0x00000000c0108e2b                register_filesystem
-                0x00000000c0108eb4                init_fs
+                0x00000000c0106135                show_stat
+                0x00000000c0106178                schedule
+                0x00000000c0106292                sched_init
+ .text          0x00000000c0106374        0x0 /mnt/walnut/build/signal.o
+ *fill*         0x00000000c0106374        0xc 
+ .text          0x00000000c0106380      0x1bb /mnt/walnut/build/sys_call.o
+                0x00000000c0106390                system_call
+                0x00000000c01063c4                ret_from_sys_call
+                0x00000000c010640a                coprocessor_error
+                0x00000000c010642c                device_not_available
+                0x00000000c0106465                timer_interrupt
+                0x00000000c010649c                sys_execve
+                0x00000000c01064aa                sys_fork
+                0x00000000c01064c2                hd_interrupt
+                0x00000000c01064fe                floppy_interrupt
+                0x00000000c0106534                parallel_interrupt
+ .text          0x00000000c010653b      0x6f3 /mnt/walnut/build/syscall.o
+                0x00000000c010653b                uname
+                0x00000000c0106571                do_timer
+                0x00000000c01065db                sys_alarm
+                0x00000000c0106646                sys_getpid
+                0x00000000c0106656                sys_getppid
+                0x00000000c0106666                sys_getuid
+                0x00000000c010667a                sys_geteuid
+                0x00000000c010668e                sys_getgid
+                0x00000000c01066a2                sys_getegid
+                0x00000000c01066b6                sys_nice
+                0x00000000c01066e2                sys_setup
+                0x00000000c01066ec                sys_waitpid
+                0x00000000c01066f6                sys_exit
+                0x00000000c0106700                sys_pause
+                0x00000000c010670a                sys_utime
+                0x00000000c0106714                sys_access
+                0x00000000c010671e                sys_sync
+                0x00000000c0106728                sys_kill
+                0x00000000c0106732                sys_dup
+                0x00000000c010673c                sys_pipe
+                0x00000000c0106746                sys_signal
+                0x00000000c0106750                sys_ioctl
+                0x00000000c010675a                sys_chroot
+                0x00000000c0106764                sys_ustat
+                0x00000000c010676e                sys_dup2
+                0x00000000c0106778                sys_sigaction
+                0x00000000c0106782                sys_sgetmask
+                0x00000000c010678c                sys_ssetmask
+                0x00000000c0106796                do_signal
+                0x00000000c010679c                math_error
+                0x00000000c01067a2                math_state_restore
+                0x00000000c01067a8                math_emulate
+                0x00000000c01067db                do_execve
+                0x00000000c01067e5                unexpected_hd_interrupt
+                0x00000000c01067fe                unexpected_floppy_interrupt
+                0x00000000c0106804                sys_ftime
+                0x00000000c010680e                sys_break
+                0x00000000c0106818                sys_ptrace
+                0x00000000c0106822                sys_stty
+                0x00000000c010682c                sys_gtty
+                0x00000000c0106836                sys_prof
+                0x00000000c0106840                sys_setregid
+                0x00000000c01068d6                sys_setgid
+                0x00000000c01068e9                sys_acct
+                0x00000000c01068f3                sys_phys
+                0x00000000c01068fd                sys_lock
+                0x00000000c0106907                sys_mpx
+                0x00000000c0106911                sys_ulimit
+                0x00000000c010691b                sys_setreuid
+                0x00000000c01069bd                sys_setuid
+                0x00000000c01069d0                sys_stime
+                0x00000000c01069da                sys_times
+                0x00000000c01069e4                sys_brk
+                0x00000000c0106a27                sys_setpgid
+                0x00000000c0106af4                sys_getpgrp
+                0x00000000c0106b04                sys_setsid
+                0x00000000c0106b71                sys_uname
+                0x00000000c0106bfb                sys_umask
+ .text          0x00000000c0106c2e      0x564 /mnt/walnut/build/time.o
+                0x00000000c0106c2e                time
+                0x00000000c0106c74                mktime
+                0x00000000c0106d9f                localtime
+                0x00000000c0106fad                sys_time
+ .text          0x00000000c0107192       0xa4 /mnt/walnut/build/timer.o
+                0x00000000c0107192                timer_callback
+                0x00000000c01071cc                init_timer
+ .text          0x00000000c0107236      0x3ed /mnt/walnut/build/trap_gate.o
+                0x00000000c01073b2                do_double_fault
+                0x00000000c01073d1                do_general_protection
+                0x00000000c01073f0                do_divide_error
+                0x00000000c010740f                do_int3
+                0x00000000c010749e                do_nmi
+                0x00000000c01074bd                do_debug
+                0x00000000c01074dc                do_overflow
+                0x00000000c01074fb                do_bounds
+                0x00000000c010751a                do_invalid_op
+                0x00000000c0107539                do_device_not_available
+                0x00000000c0107558                do_coprocessor_segment_overrun
+                0x00000000c0107577                do_invalid_TSS
+                0x00000000c0107596                do_segment_not_present
+                0x00000000c01075b5                do_stack_segment
+                0x00000000c01075d4                do_coprocessor_error
+                0x00000000c0107604                do_reserved
+ *fill*         0x00000000c0107623        0xd 
+ .text          0x00000000c0107630       0xd5 /mnt/walnut/build/traps.o
+                0x00000000c0107630                divide_error
+                0x00000000c0107665                debug
+                0x00000000c010766c                nmi
+                0x00000000c0107673                int3
+                0x00000000c010767a                overflow
+                0x00000000c0107681                bounds
+                0x00000000c0107688                invalid_op
+                0x00000000c010768f                coprocessor_segment_overrun
+                0x00000000c0107696                reserved
+                0x00000000c010769d                irq13
+                0x00000000c01076b2                double_fault
+                0x00000000c01076e9                invalid_TSS
+                0x00000000c01076f0                segment_not_present
+                0x00000000c01076f7                stack_segment
+                0x00000000c01076fe                general_protection
+ .text          0x00000000c0107705       0x10 /mnt/walnut/build/tree.o
+                0x00000000c0107705                travel_tree
+ .text          0x00000000c0107715      0x89b /mnt/walnut/build/vfs_file.o
+                0x00000000c0107715                getfile
+                0x00000000c0107762                get_fd
+                0x00000000c0107884                sys_read
+                0x00000000c01078d2                sys_write
+                0x00000000c0107920                sys_open
+                0x00000000c0107aae                sys_close
+                0x00000000c0107b33                sys_create
+                0x00000000c0107cd2                sys_lseek
+                0x00000000c0107d83                sys_fstat
+                0x00000000c0107ecb                sys_fcntl
+                0x00000000c0107f7a                sys_stat
+ .text          0x00000000c0107fb0      0xea4 /mnt/walnut/build/vfs_main.o
+                0x00000000c0107fb0                get_name_from_path
+                0x00000000c010801a                sget
+                0x00000000c0108088                search_vfsmnt
+                0x00000000c01081b2                search_subdir
+                0x00000000c0108258                vfs_get_path
+                0x00000000c0108449                find_filesystem
+                0x00000000c01084a1                sys_mount
+                0x00000000c01085de                destroy_dentry
+                0x00000000c0108605                destroy_vfsmnt
+                0x00000000c010875c                sys_umount
+                0x00000000c01088b9                sys_mknod
+                0x00000000c01088de                sys_chmod
+                0x00000000c0108935                sys_chown
+                0x00000000c01089a0                sys_link
+                0x00000000c0108a2b                sys_unlink
+                0x00000000c0108a7e                sys_chdir
+                0x00000000c0108ade                sys_mkdir
+                0x00000000c0108c43                sys_rmdir
+                0x00000000c0108ca2                sys_rename
+                0x00000000c0108d60                find_inode
+                0x00000000c0108dbb                register_filesystem
+                0x00000000c0108e44                init_fs
                 0x00000000c0109000                . = ALIGN (0x1000)
- *fill*         0x00000000c0108ec4      0x13c 
+ *fill*         0x00000000c0108e54      0x1ac 
 
 .iplt           0x00000000c0109000        0x0 加载地址 0x0000000000109000
  .iplt          0x00000000c0109000        0x0 /mnt/walnut/build/boot.o
@@ -482,7 +476,7 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
 .text.__x86.get_pc_thunk.dx
                 0x00000000c010900c        0x4 加载地址 0x000000000010900c
  .text.__x86.get_pc_thunk.dx
-                0x00000000c010900c        0x4 /mnt/walnut/build/sched.o
+                0x00000000c010900c        0x4 /mnt/walnut/build/time.o
                 0x00000000c010900c                __x86.get_pc_thunk.dx
 
 .rel.dyn        0x00000000c0109010        0x0 加载地址 0x0000000000109010
@@ -492,7 +486,7 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
  .rel.init.text
                 0x00000000c0109010        0x0 /mnt/walnut/build/boot.o
 
-.data           0x00000000c0109020      0xfe0 加载地址 0x0000000000109020
+.data           0x00000000c0109020     0x1fe0 加载地址 0x0000000000109020
  *(.data)
  .data          0x00000000c0109020        0x4 /mnt/walnut/build/console.o
  .data          0x00000000c0109024        0x0 /mnt/walnut/build/errorno.o
@@ -513,103 +507,99 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
  .data          0x00000000c0109028        0x0 /mnt/walnut/build/pci.o
  .data          0x00000000c0109028        0x0 /mnt/walnut/build/pipe.o
  .data          0x00000000c0109028        0x0 /mnt/walnut/build/pm.o
- .data          0x00000000c0109028        0x0 /mnt/walnut/build/sched.o
- .data          0x00000000c0109028        0x0 /mnt/walnut/build/signal.o
  *fill*         0x00000000c0109028       0x18 
- .data          0x00000000c0109040      0x120 /mnt/walnut/build/syscall.o
-                0x00000000c0109040                sys_call_table
- .data          0x00000000c0109160        0xc /mnt/walnut/build/time.o
-                0x00000000c0109160                mon_days
- .data          0x00000000c010916c        0x0 /mnt/walnut/build/timer.o
- .data          0x00000000c010916c        0x0 /mnt/walnut/build/trap_gate.o
- .data          0x00000000c010916c        0x0 /mnt/walnut/build/tree.o
- .data          0x00000000c010916c        0x0 /mnt/walnut/build/vfs_file.o
- .data          0x00000000c010916c        0x0 /mnt/walnut/build/vfs_main.o
+ .data          0x00000000c0109040     0x1180 /mnt/walnut/build/sched.o
+                0x00000000c010a040                tss
+                0x00000000c010a0a8                current
+                0x00000000c010a0c0                task
+ .data          0x00000000c010a1c0        0x0 /mnt/walnut/build/signal.o
+ .data          0x00000000c010a1c0      0x120 /mnt/walnut/build/syscall.o
+                0x00000000c010a1c0                sys_call_table
+ .data          0x00000000c010a2e0        0xc /mnt/walnut/build/time.o
+                0x00000000c010a2e0                mon_days
+ .data          0x00000000c010a2ec        0x0 /mnt/walnut/build/timer.o
+ .data          0x00000000c010a2ec        0x0 /mnt/walnut/build/trap_gate.o
+ .data          0x00000000c010a2ec        0x0 /mnt/walnut/build/tree.o
+ .data          0x00000000c010a2ec        0x0 /mnt/walnut/build/vfs_file.o
+ .data          0x00000000c010a2ec        0x0 /mnt/walnut/build/vfs_main.o
  *(.rodata)
- .rodata        0x00000000c010916c      0x1a4 /mnt/walnut/build/console.o
- .rodata        0x00000000c0109310       0xaf /mnt/walnut/build/hd.o
- *fill*         0x00000000c01093bf        0x1 
- .rodata        0x00000000c01093c0       0xc8 /mnt/walnut/build/heap.o
- .rodata        0x00000000c0109488       0x18 /mnt/walnut/build/init.o
- .rodata        0x00000000c01094a0       0x94 /mnt/walnut/build/kern_debug.o
- .rodata        0x00000000c0109534       0x56 /mnt/walnut/build/main.o
- *fill*         0x00000000c010958a        0x2 
- .rodata        0x00000000c010958c       0xf0 /mnt/walnut/build/mm.o
- .rodata        0x00000000c010967c       0x13 /mnt/walnut/build/pm.o
- *fill*         0x00000000c010968f        0x1 
- .rodata        0x00000000c0109690       0x63 /mnt/walnut/build/sched.o
- .rodata        0x00000000c01096f3       0x32 /mnt/walnut/build/syscall.o
- *fill*         0x00000000c0109725        0x3 
- .rodata        0x00000000c0109728       0x38 /mnt/walnut/build/timer.o
- .rodata        0x00000000c0109760      0x1e7 /mnt/walnut/build/trap_gate.o
- *fill*         0x00000000c0109947        0x1 
- .rodata        0x00000000c0109948       0x14 /mnt/walnut/build/vfs_file.o
- .rodata        0x00000000c010995c       0x42 /mnt/walnut/build/vfs_main.o
-                0x00000000c010a000                . = ALIGN (0x1000)
- *fill*         0x00000000c010999e      0x662 
+ .rodata        0x00000000c010a2ec      0x1a4 /mnt/walnut/build/console.o
+ .rodata        0x00000000c010a490       0xaf /mnt/walnut/build/hd.o
+ *fill*         0x00000000c010a53f        0x1 
+ .rodata        0x00000000c010a540       0xc8 /mnt/walnut/build/heap.o
+ .rodata        0x00000000c010a608       0x1a /mnt/walnut/build/init.o
+ .rodata        0x00000000c010a622       0x94 /mnt/walnut/build/kern_debug.o
+ *fill*         0x00000000c010a6b6        0x2 
+ .rodata        0x00000000c010a6b8       0x56 /mnt/walnut/build/main.o
+ *fill*         0x00000000c010a70e        0x2 
+ .rodata        0x00000000c010a710       0xf0 /mnt/walnut/build/mm.o
+ .rodata        0x00000000c010a800       0x13 /mnt/walnut/build/pm.o
+ *fill*         0x00000000c010a813        0x1 
+ .rodata        0x00000000c010a814       0x63 /mnt/walnut/build/sched.o
+ .rodata        0x00000000c010a877       0x32 /mnt/walnut/build/syscall.o
+ *fill*         0x00000000c010a8a9        0x3 
+ .rodata        0x00000000c010a8ac       0x38 /mnt/walnut/build/timer.o
+ .rodata        0x00000000c010a8e4      0x1e7 /mnt/walnut/build/trap_gate.o
+ *fill*         0x00000000c010aacb        0x1 
+ .rodata        0x00000000c010aacc       0x14 /mnt/walnut/build/vfs_file.o
+ .rodata        0x00000000c010aae0       0x42 /mnt/walnut/build/vfs_main.o
+                0x00000000c010b000                . = ALIGN (0x1000)
+ *fill*         0x00000000c010ab22      0x4de 
 
-.got            0x00000000c010a000        0x0 加载地址 0x000000000010a000
- .got           0x00000000c010a000        0x0 /mnt/walnut/build/boot.o
+.got            0x00000000c010b000        0x0 加载地址 0x000000000010b000
+ .got           0x00000000c010b000        0x0 /mnt/walnut/build/boot.o
 
-.got.plt        0x00000000c010a000        0xc 加载地址 0x000000000010a000
- .got.plt       0x00000000c010a000        0xc /mnt/walnut/build/boot.o
-                0x00000000c010a000                _GLOBAL_OFFSET_TABLE_
+.got.plt        0x00000000c010b000        0xc 加载地址 0x000000000010b000
+ .got.plt       0x00000000c010b000        0xc /mnt/walnut/build/boot.o
+                0x00000000c010b000                _GLOBAL_OFFSET_TABLE_
 
-.igot.plt       0x00000000c010a00c        0x0 加载地址 0x000000000010a00c
- .igot.plt      0x00000000c010a00c        0x0 /mnt/walnut/build/boot.o
+.igot.plt       0x00000000c010b00c        0x0 加载地址 0x000000000010b00c
+ .igot.plt      0x00000000c010b00c        0x0 /mnt/walnut/build/boot.o
 
-.data.rel.local
-                0x00000000c010a020     0x1180 加载地址 0x000000000010a020
- .data.rel.local
-                0x00000000c010a020     0x1180 /mnt/walnut/build/sched.o
-                0x00000000c010b020                tss
-                0x00000000c010b088                current
-                0x00000000c010b0a0                task
-
-.bss            0x00000000c010b1a0     0x2ea0 加载地址 0x000000000010b1a0
+.bss            0x00000000c010b020     0x3020 加载地址 0x000000000010b020
  *(.bss)
- .bss           0x00000000c010b1a0        0x2 /mnt/walnut/build/console.o
- .bss           0x00000000c010b1a2        0x0 /mnt/walnut/build/errorno.o
- *fill*         0x00000000c010b1a2        0x2 
- .bss           0x00000000c010b1a4        0x4 /mnt/walnut/build/fork.o
-                0x00000000c010b1a4                last_pid
- .bss           0x00000000c010b1a8        0x4 /mnt/walnut/build/hd.o
-                0x00000000c010b1a8                hdbuffer
- .bss           0x00000000c010b1ac        0x8 /mnt/walnut/build/heap.o
- .bss           0x00000000c010b1b4        0x0 /mnt/walnut/build/init.o
- .bss           0x00000000c010b1b4        0x0 /mnt/walnut/build/io.o
- .bss           0x00000000c010b1b4       0x14 /mnt/walnut/build/kern_debug.o
- .bss           0x00000000c010b1c8        0x4 /mnt/walnut/build/kstring.o
- .bss           0x00000000c010b1cc        0x0 /mnt/walnut/build/list.o
- .bss           0x00000000c010b1cc        0x0 /mnt/walnut/build/logging.o
- .bss           0x00000000c010b1cc        0x0 /mnt/walnut/build/main.o
- .bss           0x00000000c010b1cc        0x0 /mnt/walnut/build/memory.o
- .bss           0x00000000c010b1cc       0x14 /mnt/walnut/build/mm.o
-                0x00000000c010b1cc                page_count
-                0x00000000c010b1d0                end_addr
-                0x00000000c010b1d4                start_addr
-                0x00000000c010b1d8                pdt
- .bss           0x00000000c010b1e0        0x0 /mnt/walnut/build/mmap.o
- .bss           0x00000000c010b1e0        0x0 /mnt/walnut/build/msg_qeue.o
- .bss           0x00000000c010b1e0        0x8 /mnt/walnut/build/pci.o
-                0x00000000c010b1e0                g_pciinfo
- .bss           0x00000000c010b1e8        0x0 /mnt/walnut/build/pipe.o
- *fill*         0x00000000c010b1e8       0x18 
- .bss           0x00000000c010b200      0x900 /mnt/walnut/build/pm.o
-                0x00000000c010b200                gdt_entry
-                0x00000000c010b300                idt_entry
- .bss           0x00000000c010bb00        0x4 /mnt/walnut/build/sched.o
-                0x00000000c010bb00                last_task_used_math
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/signal.o
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/syscall.o
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/time.o
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/timer.o
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/trap_gate.o
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/tree.o
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/vfs_file.o
- .bss           0x00000000c010bb04        0x0 /mnt/walnut/build/vfs_main.o
+ .bss           0x00000000c010b020        0x2 /mnt/walnut/build/console.o
+ .bss           0x00000000c010b022        0x0 /mnt/walnut/build/errorno.o
+ *fill*         0x00000000c010b022        0x2 
+ .bss           0x00000000c010b024        0x4 /mnt/walnut/build/fork.o
+                0x00000000c010b024                last_pid
+ .bss           0x00000000c010b028        0x4 /mnt/walnut/build/hd.o
+                0x00000000c010b028                hdbuffer
+ .bss           0x00000000c010b02c        0x8 /mnt/walnut/build/heap.o
+ .bss           0x00000000c010b034        0x0 /mnt/walnut/build/init.o
+ .bss           0x00000000c010b034        0x0 /mnt/walnut/build/io.o
+ .bss           0x00000000c010b034       0x14 /mnt/walnut/build/kern_debug.o
+ .bss           0x00000000c010b048        0x4 /mnt/walnut/build/kstring.o
+ .bss           0x00000000c010b04c        0x0 /mnt/walnut/build/list.o
+ .bss           0x00000000c010b04c        0x0 /mnt/walnut/build/logging.o
+ .bss           0x00000000c010b04c        0x0 /mnt/walnut/build/main.o
+ .bss           0x00000000c010b04c        0x0 /mnt/walnut/build/memory.o
+ .bss           0x00000000c010b04c       0x14 /mnt/walnut/build/mm.o
+                0x00000000c010b04c                page_count
+                0x00000000c010b050                end_addr
+                0x00000000c010b054                start_addr
+                0x00000000c010b058                pdt
+ .bss           0x00000000c010b060        0x0 /mnt/walnut/build/mmap.o
+ .bss           0x00000000c010b060        0x0 /mnt/walnut/build/msg_qeue.o
+ .bss           0x00000000c010b060        0x8 /mnt/walnut/build/pci.o
+                0x00000000c010b060                g_pciinfo
+ .bss           0x00000000c010b068        0x0 /mnt/walnut/build/pipe.o
+ *fill*         0x00000000c010b068       0x18 
+ .bss           0x00000000c010b080      0x900 /mnt/walnut/build/pm.o
+                0x00000000c010b080                gdt_entry
+                0x00000000c010b180                idt_entry
+ .bss           0x00000000c010b980        0x4 /mnt/walnut/build/sched.o
+                0x00000000c010b980                last_task_used_math
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/signal.o
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/syscall.o
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/time.o
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/timer.o
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/trap_gate.o
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/tree.o
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/vfs_file.o
+ .bss           0x00000000c010b984        0x0 /mnt/walnut/build/vfs_main.o
                 0x00000000c010c000                . = ALIGN (0x1000)
- *fill*         0x00000000c010bb04      0x4fc 
+ *fill*         0x00000000c010b984      0x67c 
  COMMON         0x00000000c010c000        0x4 /mnt/walnut/build/errorno.o
                 0x00000000c010c000                errno
  COMMON         0x00000000c010c004        0x4 /mnt/walnut/build/heap.o
@@ -646,20 +636,20 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
                                         0xabc (松开之前的大小)
  .stab          0x00000000c011116c      0xcf0 /mnt/walnut/build/heap.o
                                         0xe94 (松开之前的大小)
- .stab          0x00000000c0111e5c      0x414 /mnt/walnut/build/init.o
-                                        0x6cc (松开之前的大小)
- .stab          0x00000000c0112270      0x15c /mnt/walnut/build/io.o
+ .stab          0x00000000c0111e5c      0x408 /mnt/walnut/build/init.o
+                                        0x6c0 (松开之前的大小)
+ .stab          0x00000000c0112264      0x15c /mnt/walnut/build/io.o
                                         0x168 (松开之前的大小)
- .stab          0x00000000c01123cc      0x720 /mnt/walnut/build/kern_debug.o
+ .stab          0x00000000c01123c0      0x720 /mnt/walnut/build/kern_debug.o
                                         0x900 (松开之前的大小)
- .stab          0x00000000c0112aec     0x10e0 /mnt/walnut/build/kstring.o
+ .stab          0x00000000c0112ae0     0x10e0 /mnt/walnut/build/kstring.o
                                        0x1200 (松开之前的大小)
- .stab          0x00000000c0113bcc     0x1194 /mnt/walnut/build/list.o
+ .stab          0x00000000c0113bc0     0x1194 /mnt/walnut/build/list.o
                                        0x1338 (松开之前的大小)
- .stab          0x00000000c0114d60      0x234 /mnt/walnut/build/logging.o
+ .stab          0x00000000c0114d54      0x234 /mnt/walnut/build/logging.o
                                         0x39c (松开之前的大小)
- .stab          0x00000000c0114f94      0x618 /mnt/walnut/build/main.o
-                                        0xb64 (松开之前的大小)
+ .stab          0x00000000c0114f88      0x624 /mnt/walnut/build/main.o
+                                        0xb70 (松开之前的大小)
  .stab          0x00000000c01155ac      0x258 /mnt/walnut/build/memory.o
                                         0x444 (松开之前的大小)
  .stab          0x00000000c0115804     0x1344 /mnt/walnut/build/mm.o
@@ -676,30 +666,30 @@ do_floppy           0x4               /mnt/walnut/build/syscall.o
                                         0x168 (松开之前的大小)
  .stab          0x00000000c0117574      0x720 /mnt/walnut/build/pm.o
                                         0x90c (松开之前的大小)
- .stab          0x00000000c0117c94      0x84c /mnt/walnut/build/sched.o
-                                        0xb34 (松开之前的大小)
- .stab          0x00000000c01184e0      0x15c /mnt/walnut/build/signal.o
+ .stab          0x00000000c0117c94      0x858 /mnt/walnut/build/sched.o
+                                        0xb40 (松开之前的大小)
+ .stab          0x00000000c01184ec      0x15c /mnt/walnut/build/signal.o
                                         0x168 (松开之前的大小)
- .stab          0x00000000c011863c      0x8dc /mnt/walnut/build/sys_call.o
+ .stab          0x00000000c0118648      0x8dc /mnt/walnut/build/sys_call.o
                                         0x8e8 (松开之前的大小)
- .stab          0x00000000c0118f18     0x1c14 /mnt/walnut/build/syscall.o
+ .stab          0x00000000c0118f24     0x1c14 /mnt/walnut/build/syscall.o
                                        0x2100 (松开之前的大小)
- .stab          0x00000000c011ab2c      0x8f4 /mnt/walnut/build/time.o
+ .stab          0x00000000c011ab38      0x8f4 /mnt/walnut/build/time.o
                                         0xc90 (松开之前的大小)
- .stab          0x00000000c011b420      0x384 /mnt/walnut/build/timer.o
+ .stab          0x00000000c011b42c      0x384 /mnt/walnut/build/timer.o
                                         0x810 (松开之前的大小)
- .stab          0x00000000c011b7a4      0xb70 /mnt/walnut/build/trap_gate.o
+ .stab          0x00000000c011b7b0      0xb70 /mnt/walnut/build/trap_gate.o
                                         0xff0 (松开之前的大小)
- .stab          0x00000000c011c314      0x498 /mnt/walnut/build/traps.o
+ .stab          0x00000000c011c320      0x498 /mnt/walnut/build/traps.o
                                         0x4a4 (松开之前的大小)
- .stab          0x00000000c011c7ac      0x1bc /mnt/walnut/build/tree.o
+ .stab          0x00000000c011c7b8      0x1bc /mnt/walnut/build/tree.o
                                         0x1c8 (松开之前的大小)
- .stab          0x00000000c011c968      0xffc /mnt/walnut/build/vfs_file.o
+ .stab          0x00000000c011c974      0xffc /mnt/walnut/build/vfs_file.o
                                        0x150c (松开之前的大小)
- .stab          0x00000000c011d964     0x1aac /mnt/walnut/build/vfs_main.o
+ .stab          0x00000000c011d970     0x1aac /mnt/walnut/build/vfs_main.o
                                        0x1fb0 (松开之前的大小)
                 0x00000000c0120000                . = ALIGN (0x1000)
- *fill*         0x00000000c011f410      0xbf0 
+ *fill*         0x00000000c011f41c      0xbe4 
 
 .note.GNU-stack
                 0x0000000000000000        0x0

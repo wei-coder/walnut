@@ -111,11 +111,10 @@ void entry_kernel()
 	}
 	else if(0 < ret)
 	{
-		printf("father process operating!\n");
-	}
-	while(1)
-	{
-		nop();
+		while(1)
+		{
+			printf("this is father process_%d\n", current->pid);
+		}
 	}
 }
 
